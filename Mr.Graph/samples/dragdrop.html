@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Drag and Drop</title>
+		<style type="text/css">
+			body{margin:0;font:normal normal 12px/150% arial}
+			#dropArea{padding:20px 0px;margin:20px;border:2px dashed #ddd;}
+			#list{padding:0 20px;margin:0;list-style:none;display:inline-block;}
+			#list li{display:inline-block;margin:0 10px 10px 0;position:relative;}
+			#list li img{border:1px solid #ddd;padding:0;margin:0;padding:5px;background:#eee;}
+			#list li img.hover{-moz-box-shadow:0 2px 2px rgba(0,0,0,.5);box-shadow:0 2px 2px rgba(0,0,0,.5);-webkit-box-shadow:0 2px 2px rgba(0,0,0,.5)}
+			p#dragLabel{font-size:1.5em;font-weight:bold;color:#BBB;text-align:center;font-style:italic;}
+			#loading{padding:2px 20px;}
+		</style>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+	</head>
+	<body>
+		<div>
+			<div id="dropArea">
+				<p id="dragLabel">Drag images from your desktop to drop here</p>
+			</div>			
+			<ul id="list">        
+			</ul>
+			<p id="loading"></p>
+			<script type="text/javascript">
+				if (Mr.browser.ff || Mr.browser.chrome) {
+					var dropArea = document.getElementById('dropArea');
+					var list = document.getElementById('list');
+					var loading = document.getElementById('loading');
+
+					dropArea.addEventListener('dragover', function (evt) {
+						this.style.borderColor = "blue";
+						this.style.backgroundColor = '#eee';
+						evt.preventDefault();
+						return false;
+					}, false);
+
+					// in FF, dragexit is ok but not in chrome.
+					// so dragleave is ok for two.
+					dropArea.addEventListener('dragleave', function (evt) {
+						this.style.borderColor = "#ddd";
+						this.style.backgroundColor = '#fff';
+						return false;
+					}, false);
+
+					dropArea.addEventListener('drop', function (evt) {
+						evt.preventDefault();
+						
+						this.style.borderColor = "#ddd";
+						this.style.backgroundColor = '#fff';
+						list.innerHTML = '';
+						
+						var files = evt.dataTransfer.files;
+						var fileLength = files.length;
+						
+						if(fileLength > 50){
+							loading.innerHTML = 'FILE MAX LENGTH : 50.';
+							return false;
+						}
+						
+						var iterator = Mr.range(Mr.strFormat('[0, {0}]', fileLength));
+						Mr.asynIterator(iterator, function(i){
+							var f = files[i];
+							if (!f.type.match('^image.')) {
+								return Mr.CONTINUE;
+							}
+
+							var reader = new FileReader();
+							reader.onload = (function (f, asyn) {
+								return function (e) {
+									if (e.target.readyState == FileReader.DONE) {
+										var li = document.createElement('li');
+										var img = document.createElement('img');
+										
+										img.addEventListener('mouseover', function () { img.className = 'hover'; }, false);
+										img.addEventListener('mouseout', function () { img.className = ''; }, false);
+										
+										img.draggble = false;
+										img.style.height = '100px';											
+										
+										img.onload = function(){										
+											li.appendChild(img);
+											list.appendChild(li);
+											reader = null;
+											asyn.next();
+											
+											if(i == fileLength - 1){
+												loading.innerHTML = 'DONE.';
+											}
+										};
+										img.src = e.target.result;
+										
+										// set loading
+										loading.innerHTML = Mr.strFormat('LOADING : {0}', f.name);
+									}
+								};
+							})(f, this);
+
+							reader.readAsDataURL(f);
+						});
+
+						
+						return false;
+					}, false);
+
+					function log(obj) {
+						console.log(obj);
+					}
+
+					function forLog(obj) {
+						for (var p in obj) console.log(p);
+					}
+				}else{
+					var p = document.getElementById('dragLabel');
+					p.innerHTML = 'SORRY, YOUR BROWSER DON\'T SUPPORT [Drag and Drop] OR [File API].';
+					p.style.color = 'red';
+				}
+			</script>
+		</div>
+	</body>
+</html>

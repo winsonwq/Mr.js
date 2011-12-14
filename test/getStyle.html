@@ -1,0 +1,70 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style type="text/css">
+			#test{
+				position:absolute;
+				left:200px;
+				border:1px solid #000;
+				line-height:22px;
+				background-color:#456;
+				float:left;
+				right:0px;
+				opacity:.8;				
+			}
+		</style>
+		<script type="text/javascript" src="../Mr&Ms.js"></script>
+		<script type="text/javascript" src="jquery.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var log = document.getElementById('log');
+				var test = document.getElementById('test');
+				
+				function debug(property){
+					log.innerHTML += '<b>' + property + '</b>:' + Mr(test).css(property) + '<br/>';
+					log.innerHTML += '<b>' + property + '</b>:' + $(test).css(property) + '<br/>';
+				}
+				
+				/*Mr(test).css({
+					'display' : 'inline',
+					'border' : '1px solid #000',
+					'color' : 'blue',
+					'line-height' : '30px',
+					'background' : '#e1e1e1',
+					'left' : '300px',
+					'top' : '500px',
+					'font-size' : '20px',
+					'float' : 'left',
+					'opacity' : '.5',
+					'-moz-box-shadow' : '3px 3px 4px 0px rgba(0,0,0, .7)',
+					'-webkit-box-shadow' : '3px 3px 4px 0px rgba(0,0,0, .7)',
+					'box-shadow' : '3px 3px 4px 0px rgba(0,0,0, .7)',
+					'text-shadow' : '2px 2px 2px #8a3a8a'
+				});*/
+				
+				debug('display');
+				debug('border-left-color');
+				debug('color');
+				debug('line-height');
+				debug('background-color');
+				debug('float');
+				debug('opacity');
+				debug('top');
+				debug('left');
+				debug('right');
+				debug('width');
+				debug('height');
+				debug('position');
+				debug('font-size');
+				debug('-webkit-box-shadow');
+				debug('-moz-box-shadow');
+				debug('-box-shadow');
+				debug('-o-box-shadow');
+			};
+		</script>
+	</head>
+	<body>
+		<div id="log"></div>
+		<div id="test" style="top:100px;color:red;display:inline;float:right;filter:alpha(opacity=80);">aaaaaa</div>
+	</body>
+</html>

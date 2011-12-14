@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<script type="text/javascript" src="../Mr&Ms.js"></script>
+		<script type="text/javascript">
+		    Mr(function () {
+		        var http = Mr.mhttp({
+		            url: 'Default.aspx',
+		            method: 'POST',
+		            data: function () { return { file : { 'fileName' : 'a.txt', 'contentType' : 'text/plain', value : 'asdfasdfasdfsadfsadfasldfkjasldfjksdlakj' } } },
+		            onsuccess: function (obj) {
+		                //console.log(obj);
+		            },
+		            onopen: function () {
+		                console.log('open');
+		            },
+		            oncomplete: function () {
+		                console.log('complete');
+		            },
+		            onloading: function () {
+		                console.log('loading');
+		            }
+		        });
+
+		        http.request();
+		    });
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

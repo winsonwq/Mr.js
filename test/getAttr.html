@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style type="text/css"></style>
+		<script type="text/javascript" src="../Mr&Ms.js"></script>
+		<script type="text/javascript" src="jquery.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var cbx = document.getElementById('test');
+				var cbx2 = document.getElementById('test2');
+				var cbx3 = document.getElementById('test3');
+				var log = document.getElementById('log');
+				function debug(attrName){
+					log.innerHTML += attrName + ':' + Mr(cbx3).attr(attrName) + '<br/>';
+					//log.innerHTML += attrName + ':' + Mr(cbx).attr(attrName) + '<br/>';
+					log.innerHTML += attrName + ':' + $(cbx3).attr(attrName) + '<br/>';
+				}
+				
+				Mr(cbx3).attr('checked', true);
+				
+				debug('checked');
+				debug('readOnly');
+				debug('alt');
+				debug('autocomplete');
+				debug('autofocus');
+				debug('disabled');
+				debug('maxLength');
+				debug('style');
+				debug('size');
+				debug('src');
+				debug('stroke');
+				
+				Mr(cbx3).data('stroke', 'ab111');
+				alert(Mr(cbx3).data('stroke'));
+			};
+		</script>
+	</head>
+	<body>
+		<div id="log"></div>
+		<input id="test" type="text" style="" maxLength="20"/>
+		<input id="test2" type="text" style="" maxLength="20"/>
+		<input id="test3" type="checkbox" style="background:#000;" checked stroke="11111" data-stroke="abcdefg" />
+	</body>
+</html>

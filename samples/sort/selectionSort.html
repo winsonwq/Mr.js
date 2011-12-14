@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<script type="text/javascript" src="../../latest/Mr.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var arr = [7, 9, 8, 3, 10, 15, 14, 12, 24, 21, 22, 20, 29, 25, 8, 4, 6, 3, 11, 5, 2, 22, 16, 19, 33, 28, 30];
+				var log = document.getElementById('log');
+				var swapSchedule = [];
+				Mr.each(arr, function(elem, idx){
+					var canvasElem = document.createElement('canvas');
+					canvasElem.setAttribute('id', 'canvas_' + idx);
+					canvasElem.style.position = 'absolute';
+					var width = 20;
+					var left = 100 + idx * width;
+					var top =  400 - elem * 10;
+					canvasElem.style.left = left * 1.1 + 'px';
+					canvasElem.style.top = top + 'px';
+					canvasElem.width = width;
+					canvasElem.height = elem * 10;
+					document.body.appendChild(canvasElem);
+					if(canvasElem.getContext){
+						var canvas = canvasElem.getContext('2d');
+						if(canvas){
+							canvas.font = '12px verdana';
+							canvas.strokeStyle = '#fff';
+							canvas.fillStyle = '#0073EA';
+							canvas.shadowOffsetX = 2;
+							canvas.shadowOffsety = 2;
+							canvas.shadowBlur = 2;
+							canvas.shadowColor = '#000';
+							canvas.fillRect(0, 0, width, elem * 10);
+							canvas.strokeText(elem, 2, 11);
+						}
+					}
+				});
+				
+				function selectionSort(arr){
+					for(var i = 0 ; i < arr.length - 1 ; i++){
+						var min = i;
+						for(var ii = i + 1; ii < arr.length ; ii++){
+							if(arr[ii] < arr[min]){
+								min = ii;
+							}
+						}
+						var temp = arr[i];
+						arr[i] = arr[min];
+						arr[min] = temp;
+						
+						swapSchedule.push({ 'i' : i, 'ii' : min});
+					}
+				}
+				
+				function swap(idx){					
+					if(idx == swapSchedule.length){
+						return;
+					}
+					
+					var swapObj = swapSchedule[idx];
+					var i = swapObj.i;
+					var ii = swapObj.ii;
+					var obj1 = document.getElementById('canvas_' + i);
+					var obj2 = document.getElementById('canvas_' + ii);
+					obj1.style.zIndex = '999';
+					obj2.style.zIndex = '999';
+					
+					var startObj1Left = parseInt(obj1.style.left);
+					var startObj2Left = parseInt(obj2.style.left);
+					var distance = startObj2Left - startObj1Left;
+					var speed = 500; // px / s
+					
+					//log.innerHTML += i + '=>' + ii + ',' + startObj1Left + ',' + startObj2Left + '<br/>';
+					var duration = distance / speed * 1000;
+					Mr.mv({
+						'onupdate' : function(percent){
+							obj1.style.left = startObj1Left + distance * percent + 'px';
+							obj2.style.left = startObj2Left - distance * percent + 'px';
+						},
+						'oncomplete' : function(){
+							obj1.id = 'canvas_' + ii;
+							obj2.id = 'canvas_' + i;
+							obj1.style.zIndex = '1';
+							obj2.style.zIndex = '1';
+							swap(++idx);
+						}
+					}).run(duration);
+				}
+				
+				function swap2(i, ii, callback){
+				
+					var obj1 = document.getElementById('canvas_' + i);
+					var obj2 = document.getElementById('canvas_' + ii);
+					obj1.style.zIndex = '999';
+					obj2.style.zIndex = '999';
+					
+					var startObj1Left = parseInt(obj1.style.left);
+					var startObj2Left = parseInt(obj2.style.left);
+					var distance = startObj2Left - startObj1Left;
+					var speed = 500; // px / s
+					
+					log.innerHTML += i + '=>' + ii + '<br/>';
+					var duration = distance / speed * 1000;
+					Mr.mv({
+						'onupdate' : function(percent){
+							obj1.style.left = startObj1Left + distance * percent + 'px';
+							obj2.style.left = startObj2Left - distance * percent + 'px';
+						},
+						'oncomplete' : function(){
+							obj1.id = 'canvas_' + ii;
+							obj2.id = 'canvas_' + i;
+							obj1.style.zIndex = '1';
+							obj2.style.zIndex = '1';
+							if(callback && typeof(callback) == 'function'){
+								callback();
+							}
+						}
+					}).run(duration);
+				}
+				
+				function selectionSort2(arr, i){
+					i = i || 0;
+					if(i == arr.length - 1) return;
+					var min = i;
+					(function innerSelectionSort2(arr, ii){
+						if(ii != arr.length){
+							
+							if(arr[ii] < arr[min]){
+								min = ii;
+							}
+							innerSelectionSort2(arr, ++ii);
+						}else{
+							//log.innerHTML += '(' + i + ',' + min + ')' + '<br/>';
+							var temp = arr[i];
+							arr[i] = arr[min];
+							arr[min] = temp;
+							swap2(i, min, function(){
+								selectionSort2(arr, ++i);
+							});
+						}
+					})(arr, i + 1);
+				}
+				
+				function method1(){
+					selectionSort(arr);
+					swap(0);
+				}
+				
+				function method2(){
+					selectionSort2(arr);
+				}
+				
+				//method1();
+				//method2();
+				
+				function asynSelectionSort(arr){
+					Mr.asynIterator(Mr.range('[0, ' + (arr.length - 1) + ')'), function(i){
+						var min = i;
+						var outer = this;
+						Mr.asynIterator(Mr.range('[' + (i + 1) + ', ' + arr.length + ')'), function(ii){
+							if(arr[ii] < arr[min]){
+								min = ii;
+							}
+							this.next(true);
+						}, function(){
+							var temp = arr[i];
+							arr[i] = arr[min];
+							arr[min] = temp;
+							swap2(i, min, outer.callback());
+						});
+					});
+				}
+				asynSelectionSort(arr);
+			}
+		</script>
+	</head>
+	<body>
+		<div id="log"></div>
+	</body>
+</html>

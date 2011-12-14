@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style text="text/css">
+			body{font:normal normal 12px/150% verdana;}
+			a{
+				color:#000;
+				text-decoration:none;
+				display:inline-block;
+				border:1px solid #888;
+				cursor:pointer;
+				width : 200px;
+			}
+			a:active{
+				background: #ffffff; /* Old browsers */
+			}
+			#button{background:#000;}
+			#button1{background:#0f0;}
+		</style>
+		<script type="text/javascript" src="../Mr&Ms.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var btn = document.getElementById('button');
+				var btn1 = document.getElementById('button1');
+				///*
+				Mr(btn).animate({
+					newState : {
+					'color' : '#fff',
+					'width' : '300px',
+					'height' : '300px',
+					'background-color' : 'red',
+					'opacity' : '0'
+					}, 
+					duration : 500, 
+					callback : function(){
+					}
+				});			
+			}	
+		</script>
+	</head>
+	<body>
+		<a id="button" href="javascript:;">Click me</a>
+		<a id="button1" href="javascript:;">Click me</a>
+	</body>
+</html>

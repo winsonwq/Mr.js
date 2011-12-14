@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+		<style type="text/css">
+			.bouce{border:1px solid #000;}
+		</style>
+		<script type="text/javascript" src="../latest/Mr.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var log = document.getElementById('log');
+				var canvasElem = document.getElementById('canvas');
+				if(canvasElem.getContext){
+					canvas = canvasElem.getContext('2d');
+					var lineScope = { x : 20, y : 100, width : 300, height : 2 };
+					var maxHeight = 10;
+					var boucing = false;
+					var moving = false;
+					
+					function handler(evt){
+						var x = evt.clientX - canvasElem.offsetTop;
+						var y = evt.clientY - canvasElem.offsetLeft;
+						//log.innerHTML = x + ',' + y;
+						
+						if(moving){
+							var mheight = getPercent(x, lineScope.width) * maxHeight;
+							var currentHeight = 100 - y;
+							//log.innerHTML = x + ',' + y + ',' + currentHeight + ',' + mheight + ', moving : ' + moving + '<br/>';
+							if(Math.abs(currentHeight) <= mheight){
+								drawLine(currentHeight, 0);
+							}else{
+								moving = false;
+								boucing = true;
+								bouce(x, maxHeight);		
+							}
+						}else if(x > lineScope.x && y > lineScope.y && x <= lineScope.x + lineScope.width && y <= lineScope.y + lineScope.height){
+							moving = true;						
+						}
+					}
+					
+					function getPercent(x, width){
+						var half = width / 2;
+						var x1 = x - half;
+						var percent = Math.abs(x1) / half;
+						return 1 - percent;
+					}
+					
+					function bouce(x, maxHeight){
+						Mr.mv({
+							onupdate : function(percent, cnt){
+								var m = (cnt % 2 == 0) ? -1 : 1;
+								drawLine(m * getPercent(x, lineScope.width) * maxHeight *  (1 - percent), percent);
+							},
+							oncomplete : function(){ boucing = true; }
+						}).run(1000, 25);
+					}
+					
+					canvasElem.addEventListener('mousemove', handler, false);
+					canvasElem.addEventListener('mouseover', function(){
+						this.style.cursor = 'pointer';
+					}, false);
+					canvasElem.addEventListener('mouseout', function(){
+						this.style.cursor = 'normal';
+					}, false);
+					
+					function drawLine(height, percent){
+						var p = 1 - percent;
+						canvas.clearRect(0, 0, 800, 200);
+						canvas.lineWidth = '2';
+						canvas.shadowOffsetX = 0;
+						canvas.shadowOffsetY = 2;
+						canvas.shadowBlur = 3;
+						canvas.shadowColor = '#888';
+						
+						canvas.strokeStyle = (percent == 0 || percent == 1) ? '#000' : 'rgba(' + parseInt(255 * p) + ', ' + parseInt(0 * p) + ', ' + parseInt(0 * p) + ',1)'
+						
+						canvas.save();
+						canvas.beginPath();
+						canvas.moveTo(lineScope.x + lineScope.width, 100);
+						canvas.quadraticCurveTo(190, 100 - height, lineScope.x, 100);
+						canvas.stroke();
+						canvas.restore();
+					}					
+					drawLine(0);
+				}
+			};
+		</script>
+	</head>
+	<body>
+		<canvas id="canvas" width="800" height="200" class="bouce">
+			<p>Please change a advanced browser which support canvas.</p>
+		</canvas>
+		<div id="log"></div>
+	</body>
+</html>

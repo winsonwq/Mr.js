@@ -1,0 +1,196 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Cubic & Quadratic B¨¦zier Curve</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(800, 500).appendTo(div);
+				
+				var title = graph.text(290, 415, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#fff', 'font-family' : 'verdana' });					
+				var path1Cx = 200, path2Cx = 600, interval = 100, btnRadius = 8;
+				var browserSize = Mr.browserSize();
+				var cpos1 = [{ x : path1Cx - interval, y : 175 }, { x : path1Cx, y : 175 }, { x : path1Cx + interval, y : 325}];
+				
+				var titleGroup = graph.group()
+					.attr({
+						'stroke' : 'none',
+						'fill' : '#ffa200',
+						'font-weight' : 'bold',
+						'font-size' : '16px',
+						'font-family' : 'verdana'
+					});
+		
+				var textGroup = graph.group()
+					.attr({
+						'stroke' : 'none',
+						'fill' : 'greenyellow',
+						'font-family' : 'verdana',
+						'font-size' : '9px'
+					});
+					
+				var sublineGroup = graph.group()
+					.attr({
+						'stroke' : '#fff',
+						'fill' : 'none',
+						'stroke-dasharray' : '5',
+						'stroke-width' : 2
+					});
+					
+				var controlBtnGroup = graph.group()
+					.attr({
+						'stroke' : '#fff',
+						'fill' : '#333',
+						'stroke-width' : 3
+					});
+				
+				var btnTextGroup = graph.group()
+					.attr({
+						'stroke' : 'none',
+						'fill' : '#fff',
+						'font-size' : '9px',
+						'font-family' : 'verdana'
+					});
+				
+				var pathGroup = graph.group()
+					.attr({
+						'stroke' : 'greenyellow',
+						'stroke-width' : 10,
+						'fill' : 'none',
+						'stroke-linecap' : 'butt'
+					});			
+					
+				var ctitle = titleGroup.text(path1Cx - interval - 50, 100, null, null, 'Cubic B¨¦zier');
+				var qtitle = titleGroup.text(path2Cx - interval - 50, 100, null, null, 'Quadratic B¨¦zier');
+				
+				var cpathStr = Mr.strFormat('M {0} {1} C {2} {3} {4} {5} {6} {7} S {8} {9} {10} {11}',
+						path1Cx - interval,
+						250,
+						cpos1[0].x,
+						cpos1[0].y,
+						cpos1[1].x,
+						cpos1[1].y,
+						path1Cx,
+						250,
+						cpos1[2].x,
+						cpos1[2].y,
+						path1Cx + interval,
+						250
+					);
+				
+				var cpath = pathGroup.path(cpathStr);				
+				var cPathText = textGroup.text(path1Cx - interval - 50, 115, null, null, cpathStr);
+				
+				var cline1 = sublineGroup.path(Mr.strFormat('M {0} {1} L {2} {3}', path1Cx - interval, 250, cpos1[0].x, cpos1[0].y));
+				var cline2 = sublineGroup.path(Mr.strFormat('M {0} {1} L {2} {3}', path1Cx, 250, cpos1[1].x, cpos1[1].y));
+				var cline3 = sublineGroup.path(Mr.strFormat('M {0} {1} L {2} {3}', path1Cx + interval, 250, cpos1[2].x, cpos1[2].y));
+				
+				var cbtn1 = controlBtnGroup.circle(cpos1[0].x, cpos1[0].y, btnRadius);
+				var cbtn1Text = btnTextGroup.text(cpos1[0].x, cpos1[0].y, 12, 3, Mr.strFormat('({0}, {1})', cpos1[0].x, cpos1[0].y));
+				var cbtn2 = controlBtnGroup.circle(cpos1[1].x, cpos1[1].y, btnRadius);
+				var cbtn2Text = btnTextGroup.text(cpos1[1].x, cpos1[1].y, 12, 3, Mr.strFormat('({0}, {1})', cpos1[1].x, cpos1[1].y));
+				var cbtn3 = controlBtnGroup.circle(cpos1[2].x, cpos1[2].y, btnRadius);
+				var cbtn3Text = btnTextGroup.text(cpos1[2].x, cpos1[2].y, 12, 3, Mr.strFormat('({0}, {1})', cpos1[2].x, cpos1[2].y));
+				
+				function updateBtnText(textObj, x, y){
+					textObj.setText(Mr.strFormat('({0}, {1})', x, y));
+				}
+				
+				cbtn1.dragMove(function(evt){
+					var pos = graph.pointerPosition(evt);
+					if(pos.x >=0 && pos.y >= 0 && pos.x <= 800 && pos.y <= 500){
+						cline1.setSubPathPoints(1, { x : pos.x, y : pos.y });
+						cpath.setSubPathPoints(1, { x1 : pos.x, y1 : pos.y });
+						cbtn1.attr({ cx : pos.x, cy : pos.y });
+						cbtn1Text.attr({ x : pos.x, y : pos.y });
+						
+						updateBtnText(cbtn1Text, pos.x, pos.y);				
+						cPathText.setText(cpath.pathStr());
+					}
+				});
+				
+				cbtn2.dragMove(function(evt){
+					var pos = graph.pointerPosition(evt);
+					if(pos.x >=0 && pos.y >= 0 && pos.x <= 800 && pos.y <= 500){
+						cline2.setSubPathPoints(1, { x : pos.x, y : pos.y });
+						cpath.setSubPathPoints(1, { x2 : pos.x, y2 : pos.y });
+						cbtn2.attr({ cx : pos.x, cy : pos.y });
+						cbtn2Text.attr({ x : pos.x, y : pos.y });
+						
+						updateBtnText(cbtn2Text, pos.x, pos.y);
+						cPathText.setText(cpath.pathStr());
+					}
+				});
+				
+				cbtn3.dragMove(function(evt){
+					var pos = graph.pointerPosition(evt);
+					if(pos.x >=0 && pos.y >= 0 && pos.x <= 800 && pos.y <= 500){
+						cline3.setSubPathPoints(1, { x : pos.x, y : pos.y });
+						cpath.setSubPathPoints(2, { x1 : pos.x, y1 : pos.y });
+						cbtn3.attr({ cx : pos.x, cy : pos.y });
+						cbtn3Text.attr({ x : pos.x, y : pos.y });
+						
+						updateBtnText(cbtn3Text, pos.x, pos.y);
+						cPathText.setText(cpath.pathStr());
+					}
+				});
+				
+				var cpos2 = [{ x : path2Cx - interval / 2, y : 150}, { x : path2Cx + interval / 2, y : 350 }];
+				
+				var qpathStr = Mr.strFormat('M {0} {1} Q {2} {3} {4} {5} Q {6} {7} {8} {9}', 
+						path2Cx - interval,
+						250,
+						cpos2[0].x,
+						cpos2[0].y,
+						path2Cx,
+						250,
+						cpos2[1].x,
+						cpos2[1].y,
+						path2Cx + interval,
+						250
+					);
+				var qpath = pathGroup.path(qpathStr);				
+				var qPathText = textGroup.text(path2Cx - interval - 50, 115, null, null, qpathStr);
+				
+				var qline1 = sublineGroup.path(Mr.strFormat('M {0} {1} L {2} {3} L {4} {5}', path2Cx - interval, 250, cpos2[0].x, cpos2[0].y, path2Cx, 250));
+				var qline2 = sublineGroup.path(Mr.strFormat('M {0} {1} L {2} {3} L {4} {5}', path2Cx, 250, cpos2[1].x, cpos2[1].y, path2Cx + interval, 250));
+				
+				var qbtn1 = controlBtnGroup.circle(cpos2[0].x, cpos2[0].y, btnRadius);
+				var qbtn1Text = btnTextGroup.text(cpos2[0].x, cpos2[0].y, 12, 3, Mr.strFormat('({0}, {1})', cpos2[0].x, cpos2[0].y));
+				var qbtn2 = controlBtnGroup.circle(cpos2[1].x, cpos2[1].y, btnRadius);
+				var qbtn2Text = btnTextGroup.text(cpos2[1].x, cpos2[1].y, 12, 3, Mr.strFormat('({0}, {1})', cpos2[1].x, cpos2[1].y));
+				
+				qbtn1.dragMove(function(evt){
+					var pos = graph.pointerPosition(evt);
+					if(pos.x >=0 && pos.y >= 0 && pos.x <= 800 && pos.y <= 500){
+						qline1.setSubPathPoints(1, { x : pos.x, y : pos.y });
+						qpath.setSubPathPoints(1, { x1 : pos.x, y1 : pos.y });
+						qbtn1.attr({ cx : pos.x, cy : pos.y });
+						qbtn1Text.attr({ x : pos.x, y : pos.y });
+						
+						updateBtnText(qbtn1Text, pos.x, pos.y);
+						qPathText.setText(qpath.pathStr());
+					}
+				});
+				
+				qbtn2.dragMove(function(evt){
+					var pos = graph.pointerPosition(evt);
+					if(pos.x >=0 && pos.y >= 0 && pos.x <= 800 && pos.y <= 500){
+						qline2.setSubPathPoints(1, { x : pos.x, y : pos.y });
+						qpath.setSubPathPoints(2, { x1 : pos.x, y1 : pos.y });
+						qbtn2.attr({ cx : pos.x, cy : pos.y });
+						qbtn2Text.attr({ x : pos.x, y : pos.y });
+						
+						updateBtnText(qbtn2Text, pos.x, pos.y);
+						qPathText.setText(qpath.pathStr());
+					}
+				});
+			};
+		</script>
+	</head>
+	<body style="background:#333;margin:0;width:100%;">
+		<div id="chart" style="width:800px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

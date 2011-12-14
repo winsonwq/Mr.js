@@ -1,0 +1,81 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<script type="text/javascript" src="../latest/Mr.js"></script>
+		<script type="text/javascript">
+			
+			window.onload = function(){
+				var log = document.getElementById('log');
+				document.onmousemove = function(evt){
+					evt = evt || window.event;
+					var target = document.getElementById('container');
+					target.style.left = evt.clientX - target.offsetWidth / 2 + 'px';
+					target.style.top = evt.clientY - target.offsetHeight / 2 + 'px';
+				};
+				
+				function around(x, y, radius, container, elems){
+					if(x < 0 || y < 0 || radius < 0){
+						throw new Error('x, y, radius can not be negative.');
+					}
+					
+					container.style.width = 2 * radius + 'px';
+					container.style.height = 2 * radius + 'px';
+					container.style.top = y - radius + 'px';
+					container.style.left = x - radius + 'px';
+					
+					function getXY(x, y, radius, percent){
+						return {
+							x : x + radius * Math.sin(2 * Math.PI * percent),
+							y : y - radius * Math.cos(2 * Math.PI * percent)
+						};
+					 }
+					 
+					Mr.asynIterator(Mr.infinite(), function(count){
+						Mr.mv({
+							onupdate : function(percent){
+								Mr.asynEach(elems, function(elem, idx){
+									var xyElem = getXY(radius, radius, radius, percent + (idx++ * Math.PI / 36) );
+									elem.style.left = xyElem.x + 'px';
+									elem.style.top = xyElem.y + 'px';
+									this.next();
+								});								
+							},
+							oncomplete : this.callback()
+						}).run(4000);
+					});
+				}
+				around(400, 400, 50, document.getElementById('container'), 
+					[
+					document.getElementById('ch'), 
+					document.getElementById('ch1'),
+					document.getElementById('ch2'), 
+					document.getElementById('ch3'),
+					document.getElementById('ch4'),
+					document.getElementById('ch5'),
+					document.getElementById('ch6'),
+					document.getElementById('ch7'),
+					document.getElementById('ch8'),
+					document.getElementById('ch9'),
+					document.getElementById('ch10'),
+					]);
+			}
+		</script>
+	</head>
+	<body>
+		<div id="log"></div>
+		<div id="container" style="position:absolute;left:0;top:0">
+			<span id="ch" style="position:absolute;left:0;top:0;">转</span>
+			<span id="ch1" style="position:absolute;left:0;top:0;">动</span>
+			<span id="ch2" style="position:absolute;left:0;top:0;">的</span>
+			<span id="ch3" style="position:absolute;left:0;top:0;">汉</span>
+			<span id="ch4" style="position:absolute;left:0;top:0;">字</span>
+			<span id="ch5" style="position:absolute;left:0;top:0;">牛</span>
+			<span id="ch6" style="position:absolute;left:0;top:0;">叉</span>
+			<span id="ch7" style="position:absolute;left:0;top:0;">不</span>
+			<span id="ch8" style="position:absolute;left:0;top:0;">牛</span>
+			<span id="ch9" style="position:absolute;left:0;top:0;">叉</span>
+			<span id="ch10" style="position:absolute;left:0;top:0;">!</span>
+		</div>
+	</body>
+</html>

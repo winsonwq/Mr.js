@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Tweens in Mr.Graph.js</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(700, 500).appendTo(div);
+				
+				var start = 100, firstTop = 40, radius = 20, end = 300, duration = 1000;
+				
+				var tweens = ['Linear', 'Cubic', 'Quint', 'Circ', 'Elastic', 'Back', 'Back', 'Bounce', 'Bounce'];
+				var eases = ['', 'easeIn', 'easeOut', 'easeIn', 'easeOut', 'easeIn', 'easeOut', 'easeIn', 'easeOut'];
+				var colors = ['greenyellow', '#00c2ff', '#00ff4d', '#d925b2', '#007f08', '#7f007a', '#00657f', '#007f4a', '#587f00', '#00097f'];
+				
+				graph.getDefs()
+					.path('M 330 40 L 330 400')
+					.attr('id', 'MyPath');
+				
+				var title = graph.text(null, null, null, null, '')
+								.attr({ fill : '#fff', 'font-family' : 'verdana' })
+								.textPath('Tweens in Mr.Graph.js', '#MyPath');
+				
+				for(var i = 0; i < tweens.length ; i++){
+					var top = (firstTop + 10) * (i + 1);
+					var circleLeft = 
+						graph.circle(start, top, radius, radius)
+							.attr({ fill : '#ccc', stroke : '#444', 'stroke-width' : '2' });
+						
+					var circleRight = 
+						graph.circle(end, top, radius, radius)
+							.attr({ fill : '#ccc', stroke : '#444', 'stroke-width' : '2' });
+					
+					var text = graph.text(start, top, 50, 10, tweens[i])
+									.attr({ 'font-family' : 'verdana', 'font-size' : '12px', 'fill' : '#fff' })
+									.tspan(null, null, 0, 0, '-' + eases[i]);
+					
+					var circle0 = 
+						graph.circle(start, top , radius, radius)
+							.attr({ fill : colors[i], stroke : '#fff', 'stroke-width' : '2', opacity : .9 });
+					
+					motionAnimate(circle0, i);
+				}
+				
+				function motionAnimate(circle0, i){
+					var odd = true;
+					var animate = true;
+					circle0.click(function(){
+						if(animate){
+							animate = false;
+							circle0.animate({
+								newState : {
+									cx : (odd ? end : start)
+								},
+								duration : duration,
+								tweenType : tweens[i],
+								easeType : eases[i],
+								callback : function(){
+									odd = !odd;
+									animate = true;
+								}
+							});
+						}
+					});
+				}
+			};
+		</script>
+	</head>
+	<body style="background:#333;margin:0;">
+		<div id="chart" style="width:500px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

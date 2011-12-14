@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Simple Pie</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			Mr(function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(700, 500).appendTo(div);
+				
+				var cx = 350, cy = 250, radius = 120;
+				var datas = [
+					{ name : 'Internet Explorer', percent : 36.3, color : '#0c4cc2' },
+					{ name : 'Firefox', percent : 28.2, color : '#e6bc13' },
+					{ name : 'Chrome', percent : 18.7 , color : '#b80001'},
+					{ name : 'Safari', percent : 6.3 , color : '#ae15d4'},
+					{ name : 'Opera', percent : 2.4 , color : '#444'},
+					{ name : 'Others', percent : 8.1, color : '#b5d953' }
+				];			
+				
+				var percent_sum = 0;
+				var topOffset = 3, leftOffset = 2;
+				var textOffset1 = 15, textOffset2 = 10;
+				var fontSize = '11px';
+				var fontFamily = 'verdana';
+				var pieOffset = 15;
+				
+				var pieGroup = graph.group();
+				var shadowGroup = pieGroup.group()
+					.attr({
+						stroke : 'none',
+						fill : '#bbb'
+					});
+				var group = pieGroup.group();
+				var textPathGroup = pieGroup.group();
+				var textGroup = pieGroup.group().attr({ stroke : 'none', fill : '#000', 'font-family' : fontFamily, 'font-size' : fontSize });
+				
+				graph.text(250, 450, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#e1e1e1', 'font-family' : 'verdana' });
+				var title = '2011 June Browser Statistics';
+				graph.text(350, 70, -120, null, title).attr({ fill : '#000', 'font-family' : 'verdana', 'font-weight' : 'bold' });
+				
+				Mr.asynEach(datas, function(data, i){
+					var path, shadowPath, textPosPercent_sum;
+					var textStartPos, textMiddlePos, textEndPos;
+					var _this = this;
+					
+					var pos = Mr.getPosAroundXY(cx, cy, radius, percent_sum  / 100);				
+							
+					Mr.mv({
+						onupdate : function(p){
+							var pos1 = Mr.getPosAroundXY(cx, cy, radius, (percent_sum + data.percent * p) / 100);
+							var shadowPathStr = Mr.strFormat('M {0} {1} l {2} {3} a {4} {5} {6} {7} {8} {9} {10} Z',
+								cx + leftOffset,
+								cy + topOffset,
+								pos.x - cx,
+								pos.y - cy,
+								radius,
+								radius,
+								0,
+								data.percent > .5 ? 0 : 1,
+								1,
+								pos1.x - pos.x,
+								pos1.y - pos.y);
+							if(shadowPath == null){							
+								shadowPath = shadowGroup.path(shadowPathStr);
+							}else{
+								shadowPath.setSubPathPoints(2, { x : pos1.x - pos.x, y : pos1.y - pos.y });
+							}
+							
+							var pathStr = Mr.strFormat('M {0} {1} l {2} {3} a {4} {5} {6} {7} {8} {9} {10} Z',
+								cx,
+								cy,
+								pos.x - cx,
+								pos.y - cy,
+								radius,
+								radius,
+								0,
+								data.percent > .5 ? 0 : 1,
+								1,
+								pos1.x - pos.x,
+								pos1.y - pos.y);
+							
+							if(path == null){
+								
+								
+								path = group.path(pathStr).attr({
+										stroke : '#fff',
+										'stroke-width' : 1.5,
+										'stroke-linejoin' : 'round',
+										fill : data.color
+									});
+							}else{
+								path.setSubPathPoints(2, { x :  pos1.x - pos.x, y : pos1.y - pos.y });
+							}
+						},
+						oncomplete : function(){							
+							textPosPercent_sum = percent_sum + data.percent / 2;
+							percent_sum += data.percent;
+							percent_sum = percent_sum > 100 ? 100 : percent_sum;
+						
+							textStartPos = Mr.getPosAroundXY(cx, cy, radius + 2, textPosPercent_sum / 100);
+							textMiddlePos = {
+								x : textStartPos.x + textOffset1 * (textPosPercent_sum > 50 ? -1 : 1),
+								y : textStartPos.y + textOffset1 * (textPosPercent_sum > 25 && textPosPercent_sum < 75 ? 1 : -1)
+							};
+							
+							textEndPos = {
+								x : textMiddlePos.x + textOffset2 * (textPosPercent_sum > 50 ? -1 : 1),
+								y : textMiddlePos.y
+							};
+							
+							graph.getDefs().path(Mr.strFormat('M {0} {1} L {2} {3} h {4}', 
+								textStartPos.x, 
+								textStartPos.y, 
+								textMiddlePos.x,
+								textMiddlePos.y,
+								textOffset2 * (textPosPercent_sum > 50 ? -1 : 1)
+								)
+							)
+							.attr({ id : 'textPath' + i, 'fill' : 'none', 'stroke' : '#000', 'stroke-width' : 1 });
+							
+							textPathGroup.use('#textPath' + i);
+							var displayName = data.name + ' ' + data.percent + '%';
+							textGroup.text(textEndPos.x, textEndPos.y, (textPosPercent_sum > 50 ? -1 : 0) * getTextWidth(displayName), 4, displayName);
+							
+							hoverHandler(path);
+							clickHandler(path, shadowPath, textPosPercent_sum, Math.abs(cy - textStartPos.y) / Math.abs(cx - textStartPos.x));
+							_this.next();
+						}
+					}).run(200);
+				});
+				
+				function hoverHandler(path){
+					path.hover(
+						function(){
+							path.attr({ 'opacity' : '.7', 'cursor' : 'pointer' });
+						},
+						function(){
+							path.attr({ 'opacity' : '1', 'cursor' : 'normal' });
+						}
+					);
+				}
+				
+				function getTextWidth(text){
+					var span = document.createElement('span');
+					span.innerHTML = text;
+					document.body.appendChild(span);
+					
+					Mr(span).css({ 'font-family' : fontFamily, 'font-size' : fontSize })
+					
+					var width = span.offsetWidth;
+					document.body.removeChild(span);
+					
+					return width;
+				}
+				
+				function getPosInfo(percent){
+					var b1 = percent > 50;
+					var b2 = percent > 25 && percent < 75;
+					return {
+						isTop : !b2,
+						isRight : !b1,
+						isBottom : b2,
+						isLeft : b1
+					};
+				}
+				
+				function clickHandler(path, shadowPath, percent, tan){
+					var clicked = false;
+					var runing = false;
+					var angle = Math.atan(tan);
+					path.click(function(){
+						if(runing) return;
+						if(!clicked){
+							runing = true;
+							Mr.mv({
+								onupdate : function(p){
+									var newX = cx + (getPosInfo(percent).isLeft ? -1 : 1) * pieOffset * p * Math.cos(angle);
+									var newY = cy + (getPosInfo(percent).isBottom ? 1 : -1) * pieOffset * p * Math.sin(angle);
+									path.setSubPathPoints(0, { x : newX, y : newY });
+									shadowPath.setSubPathPoints(0, { x : newX + leftOffset, y : newY + topOffset });
+								},
+								oncomplete : function(){ runing = false; }
+							}).run(300);						
+						}else{
+							path.setSubPathPoints(0, { x : cx, y : cy });
+							shadowPath.setSubPathPoints(0, { x : cx + leftOffset, y : cy + topOffset });
+						}
+						clicked = !clicked;
+					});
+				}
+			});
+		</script>
+	</head>
+	<body style="margin:0;background:#fff">
+		<div id="chart" style="width:700px;margin:0 auto;"></div>
+	</body>
+</html>

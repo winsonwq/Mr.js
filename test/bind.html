@@ -1,0 +1,36 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style type="text/css">
+			#test{position:relative;left:200px;top:200px;}
+			#outer{background:#000;height:20px;}
+		</style>
+		<script type="text/javascript" src="../Mr&Ms.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var cbx = document.getElementById('test');
+				var cbx2 = document.getElementById('test2');
+				var cbx3 = document.getElementById('test3');
+				var outer = document.getElementById('outer');
+				var log = document.getElementById('log');
+				
+				Mr(outer).hover(function(){
+					log.innerHTML += '1111<br/>';
+				}, function(){
+					log.innerHTML += '2222<br/>';
+				});
+				
+				Mr(cbx).keydown(function(event){
+					alert(event);
+				});
+			};
+		</script>
+	</head>
+	<body>
+		
+		<div id="outer">
+			<input id="test" type="text" style="" maxLength="20"/>
+		</div>
+		<div id="log"></div>
+	</body>
+</html>

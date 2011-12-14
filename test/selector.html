@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+<script type="text/javascript" src="../sizzle.js"></script>
+<script type="text/javascript" src="../Mr&Ms.js"></script>
+<script type="text/javascript">
+	Mr(function(){
+		console.log(Mr('div')._elements);
+		console.log(Mr('#a')._elements);
+		console.log(Mr('#a div')._elements);
+		console.log(Mr('.ca')._elements);
+		console.log(Mr('.ca, #cbx')._elements);
+		console.log(Mr('div:first')._elements);
+		console.log(Mr('div:contains(dddd)')._elements);
+		console.log(Mr('div:nth-last-child(2)')._elements);
+		console.log('------------');
+		console.log(Mr('.ca').find('input:checkbox')._elements);
+	});
+</script>
+<div id="a" class="ca">
+	<div id="b" class="cb">
+		<div id="c" class="cc" style="background:#fff;width:100px;">
+			ccccc
+			<input type="checkbox" id="cbx"/>
+		</div>
+	</div>	
+</div>
+<div class="ca">
+	<div class="cb">
+		<div class="cc" style="background:#fff;width:100px;">
+			dddddc
+			<input type="checkbox" id="cbx"/>
+		</div>
+	</div>	
+</div>

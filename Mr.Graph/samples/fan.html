@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Fan</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('container');
+				var graph = Mr.graph(500, 500).appendTo(div);
+				
+				var cx = 250, cy = 255, radius = 100;		
+				
+				function getPercentPI(percent){
+					return percent * Math.PI * 2;
+				}
+				
+				function getXY(x, y, radius, percent){
+					return {
+						x : x + radius * Math.sin(getPercentPI(percent)),
+						y : y - radius * Math.cos(getPercentPI(percent))
+					}
+				}
+				
+				// background
+				var radial = graph.getDefs()
+					.radialGradient()
+					.attr({
+						id : 'myRadialGradient',
+						cx : cx,
+						cy : cy,
+						r : 233
+					});
+					
+				radial.stop(0).attr({ 'stop-color' : '#fff' });
+				radial.stop('54%').attr({ 'stop-color' : '#fff' });
+				radial.stop('55%').attr({ 'stop-color' : '#eee' });
+				radial.stop('60%').attr({ 'stop-color' : '#fff' });
+				
+				var fanRadial = graph.getDefs()
+					.radialGradient()
+					.attr({
+						id : 'myFanRadialGradient',
+						cx : cx,
+						cy : cy,
+						r : 120
+					});
+					
+				fanRadial.stop(0).attr({ 'stop-color' : '#333' });
+				fanRadial.stop('60%').attr({ 'stop-color' : '#555' });
+				fanRadial.stop('100%').attr({ 'stop-color' : '#fff' });
+				
+				// title
+				var title = graph.text(155, 415, null, null, 'Prowered by Mr.Graph.js')
+								.attr({ fill : '#fff', 'font-family' : 'verdana' });
+				
+				var topBarLeftPos = getXY(cx, cy, 150, 330 / 360);
+				var topBarRightPos = getXY(cx, cy, 150, 30 / 360);
+				graph.path('M ' + topBarLeftPos.x + ' ' + topBarLeftPos.y + ' ' + 
+							'Q ' + cx + ' ' + (cy - 170) + ' ' + topBarRightPos.x + ' ' + topBarRightPos.y)
+							.attr({
+								'fill' : 'none',
+								'stroke' : '#fff',
+								'stroke-width' : '12'
+							});	
+				
+				// 170 390
+				graph.path( 'M 320 110 ' +	 
+							'Q 450 270 330 380 ' + 
+							'l 0 10' + 
+							'l -30 0 ' + 
+							'Q 250 365 200 390' +
+							'L 170 390' + 
+							'l 0 -10' +
+							'Q 50  270 180 110 ' + 
+							'Q 250 160 320 110 Z')
+					.attr({
+						'fill' : 'url(#myRadialGradient)',
+						'stroke' : '#aaa',
+						'stroke-width' : 3
+					});
+				
+				graph.circle(cx, cy, radius)
+					.attr({
+						'stroke' : '#2280c2',
+						'stroke-width' : 5,
+						'fill' : '#e1e1e1'
+					});
+					
+				graph.circle(cx, cy, 30)
+					.attr({
+						'stroke' : '#2280c2',
+						'stroke-width' : 3,
+						'fill' : '#fff'
+					});
+				
+				var btn1Cx = 185, btn1Cy = 145, btn2Cx = 315, btn2Cy = 145, btnRadius = 15;
+				var btnGroup = graph.group()
+					.attr({
+						'fill' : '#2280c2',
+						'stroke' : '#444'
+					});
+				
+				var btn1 = btnGroup
+					.circle(btn1Cx, btn1Cy, btnRadius);
+					
+				for(var i = 0 ; i < 4; i++){
+					var pos = getXY(btn1Cx - 3, btn1Cy + 4, btnRadius + 5, (270 + i * 60) / 360);
+					graph.text(pos.x, pos.y, null, null, i + '')
+						.attr({ 
+							'font-family' : 'verdana', 
+							'font-size' : 8, 
+							'font-weight' : 'bold',
+							'fill' : '#444'
+						});
+				}
+				
+				graph.use('#btnTextPath');
+				
+				var fanCount = 5;
+				var fansGroup = graph.group();
+				var pathStr = [];
+				for(var i = 0 ; i < fanCount ; i++){
+					var pos1 = getXY(cx, cy, 70, 72 * i / 360);
+					var pos2 = getXY(cx, cy, 70, 72 * (i + .8) / 360);
+					var controlPos = getXY(cx, cy, 120, 72 * (i + .4) / 360);
+					pathStr.push('M ' + cx + ' ' + cy + ' ' +
+								'L ' + pos1.x + ' ' + pos1.y + ' ' +
+								'Q ' + controlPos.x + ' ' + controlPos.y + ' ' + pos2.x + ' ' + pos2.y + ' ' +
+								'L ' + cx + ' ' + cy);
+				}
+				
+				var fan = fansGroup.path(pathStr.join(' '))
+					.attr({
+						'fill' : 'url(#myFanRadialGradient)'
+					});
+				
+				var count = 360;
+				for(var i = 0 ; i < count; i++){
+					var pos = getXY(cx, cy, 100, 10 * i / 360);
+					graph.polyline('' + cx + ', ' + cy + ' ' + pos.x + ', ' + pos.y + '').attr('stroke', '#2280c2');
+				}
+				
+				// center
+				graph.circle(cx, cy, 16).attr({ 'fill' : '#fff', 'stroke' : '#2280c2', 'stroke-width' : 4 });
+				graph.text(cx - 11, cy + 6, null, null, 'Mr')
+					.attr({ 
+						'font-family' : 'verdana',
+						'font-style' : 'italic',
+						'fill' : '#333'
+					});
+					
+				// event
+				var btnRectGroup = graph.group();
+				var btnRect = 
+					btnRectGroup.rect(btn1Cx - btnRadius, btn1Cy - 4, 2 * btnRadius, 8, 4, 4)
+						.attr({
+							'fill' : '#ffc100',
+							'cursor' : 'pointer',
+							'stroke' : '#444'
+						});
+					btnRectGroup.rect(btn1Cx - btnRadius, btn1Cy - 4, 8, 8, 4, 4)
+						.attr({
+							fill : 'greenyellow',
+							stroke : '#444'
+						});
+				
+				var running = false;
+				var interval = null;
+				var level = 0;
+				btnRectGroup.click(function(){					
+					level ++;
+					if(level <= 3 && level > 0){
+						if(interval != null){
+							interval.stop();
+						}
+						interval = fan.jsAnimateRotate({
+							from : 0, 
+							to : 360,
+							dur : 2000 - (level * 500),
+							repeatCount : 'indefinite', 
+							cx : cx,
+							cy : cy
+						});
+						btnRectGroup.attr('transform', 'rotate(' + 60 * level + ' ' + btn1Cx + ' ' + btn1Cy + ')');						
+					}else{
+						level = 0;
+						btnRectGroup.attr('transform', '');
+						interval.stop();
+					}					
+					running = !running;
+				});
+			}; 
+		</script>
+	</head>
+	<body style="background:#333;margin:0;">
+		<div id="container" style="width:500px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

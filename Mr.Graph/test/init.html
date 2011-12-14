@@ -1,0 +1,185 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(1000, 1000);
+				var btn = document.getElementById('start');
+				
+				
+				div.appendChild(graph.getGraphElement());
+		
+				graph.path('M 10 10 L 100 120')
+					.attr({ 'stroke' : 'yellowgreen', 'fill' : 'blue', 'stroke-width' : '10' })
+					.hLineTo(100, true)
+					.vLineTo(100)
+					.closePath();
+				
+				var rect = graph.rect(10, 10, 20, 20, 0, 0).attr('stroke', 'red');
+				
+				rect.animate({
+					newState : { x : 200 }, 
+					duration : 3000,
+					tweenType : 'Bounce',
+					easeType: 'easeOut'
+				});
+				
+				
+				graph.group().circle(20, 30, 5).animate({
+					newState : { 'fill' : 'blue', 'fill-opacity' : .5 }, 
+					duration : 500
+				});
+				graph.ellipse(30, 30, 10, 5).animate({
+					newState : { 'fill' : 'green', 'fill-opacity' : .7 }, 
+					duration : 2000
+				});
+				graph.line(10, 10, 70, 70).animate({
+					newState : { 'stroke-width' : 10, 'stroke-dasharray' : '5' }, 
+					duration : 500
+				});
+				graph.polyline('10,10 10,30 40,40').attr({ 'stroke' : 'blue', 'fill' : 'none', 'stroke-dasharray' : '5'  });
+				graph.polygon('20,10 10,30 40,40').attr({ 'stroke' : 'yellow' });
+
+				var circle = graph.circle(400, 400, 20).attr({ 'fill' : 'yellow' });
+				circle.mouseover(function(){
+					Mr(this).attr('fill', 'green');
+				});
+				
+				graph.getDefs()
+					.path('M 100 200 C 200 100 300 0 400 100 C 500 200 600 300 700 200 C 800 100 900 100 900 100')
+					.attr('id', 'MyPath')
+					.attr({ fill : 'none', stroke : 'red', 'stroke-dasharray' : '5 10 20', 'stroke-dashoffset' : '20%' })
+					;
+				
+				graph.use('#MyPath');
+				graph.text(null, null, null, null, '')
+					.attr({ 'font-family': 'verdana', 'font-weight' : 'bold' })
+					.textPath('ABCDEFG', '#MyPath', 100)
+					.tspan(null, null, 20, null, 'hello')
+					.attr({ 'fill' : 'red', rotate : '0' })
+					.tspan(null, null, -300, -20, 'fuck again world!!!!')
+					.text('fuck wor{ld}!!!!')
+					.attr('fill', 'blue');
+					
+				graph.group().attr({ fill : '#000' })
+					.circle(300, 300, 30)
+					.animate({
+						newState : { 'fill' : '#fff' }, 
+						duration : 400
+					});
+
+				graph.text(300, 300, 0, 0, '`{ke{tspan1}ke`}a{bc{kk}}fff`{fuck`}{de}')
+					.attr('fill', 'red')
+					.tspans(0)
+					.attr('fill', 'yellow')
+					.attr('font-weight', 'bold')
+					.attr({ stroke : 'blue' })
+					.base()
+					.tspans(1)
+					.tspans(0)
+					.attr({ fill : 'yellowgreen' });
+				
+				
+				var linear = graph.getDefs()
+					.linearGradient()
+					.attr('id', 'myLinearGradient')
+					.attr({
+						x1 : '0%',
+						y1 : '0%',
+						x2 : '100%',
+						y2 : '0%'						
+					});
+					
+				linear.stop('25%').attr({ 'stop-color' : 'white' });
+				linear.stop('80%').attr({ 'stop-color' : 'yellowgreen','stop-opacity' : '1' });	
+				
+				var radial = graph.getDefs()
+					.radialGradient()
+					.attr({
+						id : 'myRadialGradient',
+						cx : '800',
+						cy : '300',
+						r : 300,
+						fx : '800',
+						fy : '300'
+					});
+						
+				radial.stop(0).attr({ 'stop-color' : 'yellowgreen' });
+				radial.stop('50%').attr({ 'stop-color' : 'blue' });	
+				radial.stop('100%').attr({ 'stop-color' : 'yellowgreen' });	
+					
+				graph.rect(700, 200, 300, 100).attr({ stroke : 'black', fill : 'url(#myRadialGradient)'})
+				graph.rect(700, 350, 300, 100).attr({ stroke : 'black', fill : 'url(#myRadialGradient)'})
+				
+				graph.circle(300, 400, 100)
+					.attr({ stroke : 'black', fill : 'greenyellow' })
+					.selfAnimate()
+					.attr({ attributeName : 'stroke', from : "#fff", to : "#000", dur : "1s", repeatCount : 'indefinite' });
+					
+				graph.rect(-10, -10, 20, 20, 10, 5)
+					.attr({ stroke : 'black', fill : 'red' })
+					.animateMotion()
+					.attr({ dur : '3s', 'rotate' : 30, calcMode : 'paced', repeatCount : 'indefinite'})
+					.subElem('mpath')
+					.attr({ 'xlink:href' : '#MyPath' });
+					
+				graph.rect(100, 100, 40, 40)
+					.attr({ fill : '#000' })
+					.animateTransform('rotate')
+					.attr({ 
+						from : '0 120 120', 
+						to : '180 120 120', 
+						dur : '1s', 
+						repeatCount : 'indefinite'
+					}).begin(function(evt){
+						
+					}).repeat(function(evt){
+						
+					});
+					
+				graph.rect(150, 100, 40, 40)
+					.attr({ fill : '#fb1' })
+					.jsAnimateRotate({
+						from : 0, 
+						to : 180, 
+						dur : 1000, 
+						repeatCount : 'indefinite', 
+						cx : 170, 
+						cy : 120
+					});
+				
+				var path1 = graph.path('M 400 200 L 700 200')
+					.attr({ stroke : 'black', fill : 'none' });
+				
+				var ellipse = graph.rect(200, 200, 40, 10)
+					.attr({ 'fill' : 'yellowgreen', stroke : 'black' });
+				
+				ellipse.jsAnimateMotion({
+					path : path1, 
+					rotation : 'auto', 
+					dur : 3000, 
+					repeatCount : 1,
+					tweenType : 'Bounce',
+					easeType : 'easeOut'
+				});
+					
+				graph.link('http://www.google.com', '_self')
+					.rect(30, 30, 100, 100)
+					.attr({ stroke : 'purple', fill : '#f1f1f1' });
+					
+				graph.image(30, 30, 100, 100, 'http://s2.mogujie.cn/bao/110605/an5w_4mtenog0n_600x900.jpg_100x100.jpg')
+					.load(function(){
+						alert('loaded');
+					});
+			};
+		</script>
+	</head>
+	<body>
+		<div id="chart">
+		aa
+		</div>
+	</body>
+</html>

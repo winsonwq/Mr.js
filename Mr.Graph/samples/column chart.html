@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Column chart</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(800, 500).appendTo(div);
+				
+				graph.text(290, 450, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#ddd', 'font-family' : 'verdana' });	
+				
+				var chartTitle = graph.text(290, 80, null, null, 'Column Chart Sample').attr({ fill : '#444', 'font-family' : 'verdana', 'font-weight' : 'bold' });	
+				var colors = ['#1164AD', 'yellowgreen', '#AA0000'];
+				var data = [[10,40,30], [20,30,60], [30,10,80], [60,50,85], [30,40,80], [30,30,60]];
+				var dataLength = data.length;
+				
+				var columnWidth = 20, groupInterval = 30, startOffset = 20, endOffset = 20, valueFactor = 3, topOffset = 20, itemInterval = 5;
+				var totalWidth = 0, height = 0;
+				Mr(data).each(function(g){
+					Mr(g).each(function(elem){
+						var tempVal = elem * valueFactor + topOffset;
+						height = height > tempVal ? height : tempVal;
+						totalWidth += columnWidth + itemInterval;
+					});
+					totalWidth += groupInterval;
+				});
+				
+				totalWidth += startOffset + endOffset;
+				
+				var startPos = { x : (800 - totalWidth) / 2, y : (500 - height) / 2 + height  }; 
+				
+				graph.getDefs().marker()
+					.attr({ id : 'lineMarker', markerWidth : '12', markerHeight : '10', refY : 5, viewBox : '0 0 10 10', orient : "auto" })
+					.path('M 0 0 L 10 5 L 0 10 z')
+						.attr({ 'stroke' : 'none', 'fill' : '#444' });
+					
+				var backRect = graph.getDefs().clipPath()
+					.attr({ id : 'clipPath' })
+					.rect(startPos.x, startPos.y, totalWidth, height);				
+
+				var backLineGroup = graph.group().attr({ 'stroke' : '#c0c0c0', fill : 'none', 'stroke-width' : 1 });
+				var numberShowGroup = graph.group().attr({'font-family' : 'verdana', 'font-size' : '12px', 'text-anchor' : 'middle', 'clip-path' : 'url(#clipPath)'});
+				var textGroup = graph.group().attr({ 'font-family' : 'verdana', 'font-size' : '12px' });	
+				var columnShadowGroup = graph.group().attr({ 'stroke' : 'none', 'fill' : '#000', 'fill-opacity' : '.3', 'clip-path' : 'url(#clipPath)' });
+				var columnGroup = graph.group().attr({ 'stroke' : 'none', 'stroke-width' : '1', 'clip-path' : 'url(#clipPath)' });			
+				var coordinateGroup = graph.group().attr({ stroke : '#999', fill : 'none', 'stroke-width' : 1});
+				
+				// draw chart panel
+				function drawChartPanel(x, y, width, height){			
+					//draw x y
+					var yline = coordinateGroup.path(Mr.strFormat('M {0} {1} v {2} ', x, y, height * -1)).attr({ 'marker-end' : 'url(#lineMarker)'});
+					var xline = coordinateGroup.path(Mr.strFormat('M {0} {1} l {2} {3}', x, y, width, 0)).attr({ 'marker-end' : 'url(#lineMarker)'});
+					
+					var markCount = height / 30;
+					for(var i = 1 ; i < markCount ; i++ ){
+						var markPos = { x : x, y : y - i * 30 };
+						backLineGroup.path(Mr.strFormat('M {0} {1} h {2}', markPos.x, markPos.y, '-3'));
+						backLineGroup.path(Mr.strFormat('M {0} {1} h {2}', markPos.x, markPos.y, width));
+						// TBD (y - markPos.y) / valueFactor
+						textGroup.text(markPos.x - 5, markPos.y + 4, null, null, Math.round((y - markPos.y) / valueFactor)+ '').attr({ 'text-anchor' : 'end' });
+					}
+				}
+				
+				function drawChartColumns(x, y, offsetLeft, itemWidth, groupInterval, groups){
+					// TODO : vertical or horizontal
+					var pos = { x : x + offsetLeft, y : y };
+					Mr(groups).each(function(g, idx){
+						textGroup.text(pos.x, pos.y + 15, null, null, 'Group' + (idx + 1)).attr({ stroke : 'none' });					
+						Mr(g).each(function(elem, idx){
+							var height = elem * valueFactor;
+							var shadow = 
+								columnShadowGroup.rect(pos.x, pos.y - height + 1, itemWidth + 2, height - 1);
+							var column = 
+								columnGroup.rect(pos.x, pos.y - height, itemWidth, height)
+									.attr({
+										'fill' : colors[idx]
+									});
+							numberShowGroup.text(pos.x + columnWidth / 2, pos.y - height - 2, null, null, String(elem));
+							
+							hoverHandler(column, elem, idx);
+							clickHandler(column, shadow);
+							
+							pos.x += itemWidth + itemInterval;
+						});
+						pos.x += groupInterval;
+					});
+				}
+				
+				
+				function hoverHandler(column, value, idx){					
+					column.hover(
+						function(evt){
+							column.attr({ 'fill-opacity' : '.5', 'cursor' : 'pointer' });
+						}, 
+						function(evt){
+							column.attr({ 'fill-opacity' : '1', 'cursor' : 'normal' });
+						});
+				}
+				
+				function clickHandler(column, shadowColumn){
+					var running = false;
+					column.click(function(evt){
+						if(!running){
+							running = true;
+							var targetY = parseFloat(column.attr('y'));
+							var targetY2 = parseFloat(shadowColumn.attr('y'));
+							column.attr('y', targetY - 10);
+							shadowColumn.attr('y', targetY2 - 10);
+							
+							column.animate({ 
+								newState : { y : targetY }, duration : 1000, tweenType : 'Bounce', easeType : 'easeOut', 
+								callback : function(){ running = false;	}
+							});
+							
+							shadowColumn.animate({ newState : { y : targetY2 }, duration : 1000, tweenType : 'Bounce', easeType : 'easeOut' });
+						}
+					});
+				}
+				
+				drawChartPanel(startPos.x, startPos.y, totalWidth, height);
+				drawChartColumns(startPos.x, startPos.y, startOffset, columnWidth, groupInterval, data);
+				
+				Mr.mv({
+					onupdate : function(percent){
+						backRect.attr('y', startPos.y - height * percent);
+					}
+				}, 'Cubic', 'easeIn')
+				.run(1000);
+			};
+		</script>
+		<!-- marker -->
+	</head>
+	<body style="background:#fff;margin:0;width:100%;">
+		<div id="chart" style="width:800px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

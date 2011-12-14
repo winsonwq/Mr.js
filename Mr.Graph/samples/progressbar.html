@@ -1,0 +1,106 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="GBK"/>
+		<title>Progress Bar</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			Mr(function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(600, 500).appendTo(div);
+				
+				graph.text(201, 452, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#000', 'font-family' : 'verdana' });
+				graph.text(200, 450, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#fff', 'font-family' : 'verdana' });	
+				
+				var rectPos = { x : 50, y : 230, width : 500, height : 30 };
+				var textPos = { x : 550, y : 280 };
+				var textNeedTime = { x : 50, y : 280 };
+				var titleTextPos = { x : 50, y : 220 };
+				
+				var backgroundGradient = graph.getDefs()
+					.linearGradient()
+					.attr({
+						id : 'backgroundGradient',
+						y1 : '228px',
+						y2 : '262px',
+						x1 : '0%',
+						x2 : '0%'
+					});
+				
+				backgroundGradient.stop(0).attr({ 'stop-color' : '#000' });
+				backgroundGradient.stop('15%').attr({ 'stop-color' : '#333' });
+				backgroundGradient.stop('90%').attr({ 'stop-color' : '#333' });
+				backgroundGradient.stop('100%').attr({ 'stop-color' : '#000' });
+				
+				var progressGradient = graph.getDefs()
+					.linearGradient()
+					.attr({
+						id : 'progressGradient',
+						y1 : '229px',
+						y2 : '261px',
+						x1 : '0%',
+						x2 : '0%'
+					});
+				
+				progressGradient.stop(0).attr({ 'stop-color' : '#59B7FF' });
+				progressGradient.stop('45%').attr({ 'stop-color' : '#2796EA' });
+				progressGradient.stop('55%').attr({ 'stop-color' : '#0F82DB' });
+				progressGradient.stop('100%').attr({ 'stop-color' : '#006CBF' });
+				
+				
+				var textGroup = graph
+					.group()
+						.attr({
+							'font-family' : 'verdana',
+							'font-size' : '14px',
+							'stroke' : 'none',
+							'fill' : 'white',
+							'font-weight' : 'bold'
+						});
+						
+				var back = graph.rect(rectPos.x - 2, rectPos.y - 2, rectPos.width + 4, rectPos.height + 4).attr({ fill : '#999', stroke : 'none' });
+				var background = 
+					graph.rect(rectPos.x - 1, rectPos.y - 1, rectPos.width + 2, rectPos.height + 2)
+						.attr({
+							fill : "url(#backgroundGradient)"
+						});				
+
+				var progress = 
+					graph.rect(rectPos.x , rectPos.y, 0, rectPos.height)
+						.attr({
+							fill : "url(#progressGradient)"
+						});
+
+				var progressTextShadow = textGroup.text(textPos.x + 1, textPos.y + 2, null, null, '已完成 100%').attr({	'text-anchor' : 'end', 'fill' : '#000' });
+				var progressText = textGroup.text(textPos.x, textPos.y, null, null, '已完成 100%').attr({ 'text-anchor' : 'end' });
+				
+				var needTimeShadow = textGroup.text(textNeedTime.x + 1, textNeedTime.y + 2, null, null, '总剩余时间：约 5 秒').attr({	'text-anchor' : 'start', 'fill' : '#000' });
+				var needTimeText = textGroup.text(textNeedTime.x, textNeedTime.y, null, null, '总剩余时间：约 5 秒').attr({ 'text-anchor' : 'start' });
+				
+				var titleTextShadow = textGroup.text(titleTextPos.x + 1, titleTextPos.y + 2, null, null, '正在下载...').attr({	'text-anchor' : 'start', 'fill' : '#000', 'font-size' : '16px' });
+				var titleText = textGroup.text(titleTextPos.x, titleTextPos.y, null, null, '正在下载...').attr({ 'text-anchor' : 'start', 'font-size' : '16px' });
+				
+				Mr.mv({
+					onupdate : function(percent){
+						progress.attr({ width : rectPos.width * percent });
+						
+						progressTextShadow.setText('已完成 ' + Number(percent * 100).toFixed() + '%');
+						progressText.setText('已完成 ' + Number(percent * 100).toFixed() + '%');
+						
+						needTimeShadow.setText('总剩余时间：约 ' + Number((1 - percent) * 5).toFixed() + ' 秒');
+						needTimeText.setText('总剩余时间：约 ' + Number((1 - percent) * 5).toFixed() + ' 秒');
+					},
+					oncomplete : function(){
+						titleTextShadow.setText('完成下载');
+						titleText.setText('完成下载');
+					}
+				}).run(5000);
+			});
+		</script>
+		<!-- marker -->
+	</head>
+	<body style="background:#444;margin:0;width:100%;">
+		<div id="chart" style="width:600px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

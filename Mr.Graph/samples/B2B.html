@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Ball to Ball</title>
+		<script type="text/javascript" src="../../Mr&Ms.js"></script>
+		<script type="text/javascript" src="../Mr.graph.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var div = document.getElementById('chart');
+				var graph = Mr.graph(500, 500);
+				graph.appendTo(div);
+				
+				
+				var cx = 250, cy = 250, radius = 12, btnY = 35, btnX = 15;
+				
+				var panel = graph.rect(20, 50, 460, 380).attr({	cursor : 'pointer',	fill : '#333',	stroke : '#fff', 'stroke-width' : '2' });				
+				var btnGroup = graph.group().attr({ stroke : 'greenyellow',	fill : '#333',	'stroke-width' : 2,	'font-family' : 'verdana' });				
+				var title = graph.text(155, 415, null, null, 'Prowered by Mr.Graph.js').attr({ fill : '#fff', 'font-family' : 'verdana' });					
+				var lineGroup = graph.group().attr({ 'stroke' : '#fff',	'stroke-width' : '4', 'fill' : 'none' });			
+				
+				var animating = true;
+				var path = lineGroup.path('M ' + cx + ' ' + cy);			
+				var idx = 0;
+				var center = createCircle(cx, cy, radius);
+				var circleGroup = [center];
+				
+				function createCircle(x, y, radius){
+					var group = graph.group();
+					group.circle(x + 2, y + 2, radius).attr({ 'fill' : '#000', 'fill-opacity' : '.5' });
+					group.circle(x, y, radius).attr('fill', 'greenyellow');
+					return group;
+				}
+				
+				function bindHandler(idx, circle){
+					Mr(circle._graph).dragMove(function(evt){
+						var evtPos = Mr.pointerPosition(evt);
+						var relativePos = { x : evtPos.x - (browserSize.width - 500) / 2, y : evtPos.y };
+						if(relativePos.x >= 20 && relativePos.x <= 480 && relativePos.y >= 50 && relativePos.y <= 430){
+							var circles = this.getElementsByTagName('circle');
+							Mr(circles[0]).attr({ cx : relativePos.x + 2, cy : relativePos.y + 2 });
+							Mr(circles[1]).attr({ cx : relativePos.x, cy : relativePos.y });
+							path.setSubPathPoints(idx, { x : relativePos.x, y : relativePos.y });
+						}
+					});
+				}
+				
+				bindHandler(idx++, center);
+				aniMove(cx + 50, cy + 50, 300, function(){ animating = false; });				
+				
+				function aniMove(x, y, duration, callback){					
+					var circle = createCircle(x, y, radius);
+					bindHandler(idx++, circle);
+					circleGroup.push(circle);
+					
+					path.animateLineTo(x, y, duration, function(){
+						if(typeof(callback) == 'function'){
+							callback();
+						}
+					});
+				}
+				
+				var browserSize = Mr.browserSize();
+				panel.click(function(evt){
+					if(!animating){
+						animating = true;						
+						var evtPos = Mr.pointerPosition(evt);
+						aniMove(evtPos.x - (browserSize.width - 500) / 2, evtPos.y, 300, function(){ animating = false; });
+					}
+				});
+			};
+		</script>
+	</head>
+	<body style="background:#333;margin:0;">
+		<div id="chart" style="width:500px;height:500px;margin:0 auto;"></div>
+	</body>
+</html>

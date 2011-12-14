@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript" src="../../latest/Mr.js"></script>
+		<script type="text/javascript">
+			window.onload = function(){
+				var arr = [7, 9, 8, 3, 10, 15, 14, 12, 24, 21, 22, 20, 29, 25, 8, 4, 6, 3, 11, 5, 2, 22, 16, 19, 33, 28, 30];
+				var arr1 = [3,2,1];
+				var log = document.getElementById('log');
+				var swapSchedule = [];
+				Mr.each(arr, function(elem, idx){
+					var canvasElem = document.createElement('canvas');
+					canvasElem.setAttribute('id', 'canvas_' + idx);
+					canvasElem.style.position = 'absolute';
+					var width = 20;
+					var left = 100 + idx * width;
+					var top =  400 - elem * 10;
+					canvasElem.style.left = left * 1.1 + 'px';
+					canvasElem.style.top = top + 'px';
+					canvasElem.width = width;
+					canvasElem.height = elem * 10;
+					document.body.appendChild(canvasElem);
+					if(canvasElem.getContext){
+						var canvas = canvasElem.getContext('2d');
+						if(canvas){
+							canvas.font = '12px verdana';
+							canvas.strokeStyle = '#fff';
+							canvas.fillStyle = '#0073EA';
+							canvas.shadowOffsetX = 2;
+							canvas.shadowOffsety = 2;
+							canvas.shadowBlur = 2;
+							canvas.shadowColor = '#000';
+							canvas.fillRect(0, 0, width, elem * 10);
+							canvas.strokeText(elem, 2, 11);
+						}
+					}
+				});
+				
+				function bubbleSort(arr){
+					for(var i = 0 ; i < arr.length - 1 ; i++){
+						for(var ii = i + 1; ii < arr.length ; ii++){
+							if(arr[i] > arr[ii]){
+								var temp = arr[i];
+								arr[i] = arr[ii];
+								arr[ii] = temp;
+								// swap;
+								swapSchedule.push({ 'i' : i, 'ii' : ii});
+							}
+						}
+					}
+				}
+				
+				function swap(idx){					
+					if(idx == swapSchedule.length){
+						return;
+					}
+					
+					var swapObj = swapSchedule[idx];
+					var i = swapObj.i;
+					var ii = swapObj.ii;
+					var obj1 = document.getElementById('canvas_' + i);
+					var obj2 = document.getElementById('canvas_' + ii);
+					obj1.style.zIndex = '999';
+					obj2.style.zIndex = '999';
+					
+					var startObj1Left = parseInt(obj1.style.left);
+					var startObj2Left = parseInt(obj2.style.left);
+					var distance = startObj2Left - startObj1Left;
+					var speed = 500; // px / s
+					
+					//log.innerHTML += i + '=>' + ii + ',' + startObj1Left + ',' + startObj2Left + '<br/>';
+					var duration = distance / speed * 1000;
+					Mr.mv({
+						'onupdate' : function(percent){
+							obj1.style.left = startObj1Left + distance * percent + 'px';
+							obj2.style.left = startObj2Left - distance * percent + 'px';
+						},
+						'oncomplete' : function(){
+							obj1.id = 'canvas_' + ii;
+							obj2.id = 'canvas_' + i;
+							obj1.style.zIndex = '1';
+							obj2.style.zIndex = '1';
+							swap(++idx);
+						}
+					}).run(duration);
+				}
+				
+				function swap2(i, ii, callback){
+				
+					var obj1 = document.getElementById('canvas_' + i);
+					var obj2 = document.getElementById('canvas_' + ii);
+					obj1.style.zIndex = '999';
+					obj2.style.zIndex = '999';
+					
+					var startObj1Left = parseInt(obj1.style.left);
+					var startObj2Left = parseInt(obj2.style.left);
+					var distance = startObj2Left - startObj1Left;
+					var speed = 1000; // px / s
+					
+					//log.innerHTML += i + '=>' + ii + ',' + startObj1Left + ',' + startObj2Left + '<br/>';
+					var duration = distance / speed * 1000;
+					Mr.mv({
+						'onupdate' : function(percent){
+							obj1.style.left = startObj1Left + distance * percent + 'px';
+							obj2.style.left = startObj2Left - distance * percent + 'px';
+						},
+						'oncomplete' : function(){
+							obj1.id = 'canvas_' + ii;
+							obj2.id = 'canvas_' + i;
+							obj1.style.zIndex = '1';
+							obj2.style.zIndex = '1';
+							if(callback && typeof(callback) == 'function'){
+								callback();
+							}
+						}
+					}).run(duration);
+				}
+				
+				function bubble(arr, i){
+					i = i || 0;
+					if(i == arr.length - 1) return;
+					(function innerBubble(arr, ii){
+						if(ii != arr.length){
+							var needSwap = false;
+							if(arr[i] > arr[ii]){
+								needSwap = true;					
+							}
+							if(needSwap){
+								var temp = arr[i];
+								arr[i] = arr[ii];
+								arr[ii] = temp;
+								log.innerHTML += i + '=>' + ii + '<br/>';
+								swap2(i, ii, function(){
+									innerBubble(arr, ++ii);
+								});
+							}else innerBubble(arr, ++ii);
+						}else{
+							bubble(arr, ++i);
+						}
+					})(arr, i + 1);		
+				}
+				
+				function method1(){
+					bubbleSort(arr);
+					swap(0);
+				}
+				
+				function method2(){
+					bubble(arr);
+				}
+				
+				//method1();
+				//method2();
+				
+				function asynBubbleSort(arr){
+					Mr.asynIterator(Mr.range('[0, ' + (arr.length - 1) + ')'), function(i){
+						Mr.asynIterator(Mr.range('[' + (i + 1) + ', ' + arr.length + ')'), function(ii){								
+							var _this = this;
+							if(arr[i] > arr[ii]){
+								var temp = arr[i];
+								arr[i] = arr[ii];
+								arr[ii] = temp;					
+								swap2(i, ii, this.callback());
+							}else{
+								this.next();
+							}					
+						}, this.callback());
+					});
+				}
+				
+				asynBubbleSort(arr);
+				
+				function output(value, callback){
+					setTimeout(function(){
+						callback('this is value : ' + value + '<br/>');
+					}, 500);
+				}
+				
+				function temp2(){
+					Mr.asynIterator(Mr.range('[1, 5)'), function(ii){
+						Mr.asynIterator(Mr.range('[1, 5)'), function(iii){
+							Mr.asynIterator(Mr.range('[1, 5)'), function(iiii){
+								output(ii + '=>' + iii + '=>' + iiii, this.callback(function(result){
+									log.innerHTML += result;
+								}));
+							}, this.callback());
+						}, this.callback());
+					});
+				}
+				
+				//temp2();
+				
+				function temp1(){
+					var arr = [1,2,3,4,5];
+					Mr.asynEach(arr, function(i){					
+						Mr.asynEach(arr, function(ii){
+							output(i + '=>' + ii, this.callback(function(result){
+								log.innerHTML += result;
+							}));
+						}, this.callback());
+					});
+				}
+				
+				//temp1();
+			}
+		</script>
+	</head>
+	<body>
+		<div id="log"></div>
+	</body>
+</html>
