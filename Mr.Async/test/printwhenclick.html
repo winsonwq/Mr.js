@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript" src="../Mr.async.js"></script>
+		<script type="text/javascript">
+			function print(val){
+				var li = document.createElement('li');
+				li.innerHTML = val;
+				document.getElementById('output').appendChild(li);
+			}
+			
+			function $await(elem, eventType, handler){
+				var once = function(evt){
+					handler.call(this, evt);
+					this.removeEventListener(eventType, once, false);						
+				};
+				elem.addEventListener(eventType, once, false);
+			}
+
+			function Fib(){
+				var a = 0, current = 1, count = 0;
+				this.next = function(){
+					if(count++ == 0) return 0;
+					else if(count++ == 1) return 1;
+					var b = a;
+					a = current;
+					return current = a + b;
+				};
+			}
+
+			function printWhenClick(){
+				Mr.asynIterator(new Fib(), function(val, idx){
+					var _ = this;
+					$await(document.body, 'click', function(evt){
+						print(val);
+						_.next();
+					});
+				});
+			}
+
+			window.onload = function(){
+				printWhenClick();
+			};
+		</script>
+	</head>
+	<body style="height:1000px;">
+		<ul id="output">
+			
+		</ul>
+	</body>
+</html>
