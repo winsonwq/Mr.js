@@ -2,7 +2,10 @@
 <html>
 	<head>
 		<script type="text/javascript" src="../Mr.async.js"></script>
+		<script type="text/javascript" src="parser.js"></script>
 		<script type="text/javascript">
+			var code = UglifyJS.parse('var i = 0;while(i++ < 10){if(i == 5)break;console.log(i + 1);}');
+
 			function print(val){
 				var li = document.createElement('li');
 				li.innerHTML = val;
@@ -39,7 +42,68 @@
 			}
 
 			window.onload = function(){
-				printWhenClick();
+				// printWhenClick();
+				function while1(){
+					var i = 0;
+					Mr.asynIterator(Mr.infinite(), function(){
+						if(i++ < 10){
+							if(i == 5) return Mr.CONTINUE;
+							console.log(i + 1);
+							this.next();
+						}else{
+							return Mr.BREAK;
+						}
+					});
+
+					i = 0;while(i++ < 10){if(i == 5)continue;console.log(i + 1);}
+				}
+
+				function for1(){
+					for(var i = 0 ; i < 10 ; i++){
+						if(i == 5) continue;
+						console.log(i + 1);
+					}
+					
+					var i = 0;
+					Mr.asynIterator(Mr.infinite(), function(){
+						if(i < 10){
+							if(i == 5)
+							{
+								i++;
+								return Mr.CONTINUE;
+							}
+
+							console.log(i + 1);
+							i++;
+							this.next();
+						}else{
+							return Mr.BREAK;
+						}
+					});
+				}
+				
+				function doWhile(){
+					var i = 0;
+					do{
+						if(i == 5) continue;
+						console.log(i + 1);
+					}while(i++ < 10);
+
+					i = 0;
+					Mr.asynIterator(Mr.infinite(), function(){
+						if(i == 5){
+							i++;
+							return Mr.CONTINUE;
+						}
+						console.log(i + 1);
+						if(i++ < 10){
+							this.next();
+						}else{
+							return Mr.BREAK;
+						}
+					});
+				}
+				doWhile();
 			};
 		</script>
 	</head>
@@ -49,3 +113,4 @@
 		</ul>
 	</body>
 </html>
+
