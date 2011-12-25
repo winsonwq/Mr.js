@@ -3,107 +3,74 @@
 	<head>
 		<script type="text/javascript" src="../Mr.async.js"></script>
 		<script type="text/javascript" src="parser.js"></script>
+		<script type="text/javascript" src="ExpressionVisitor.js"></script>
+		<script type="text/javascript" src="Mr.array.js"></script>
 		<script type="text/javascript">
-			var code = UglifyJS.parse('var i = 0;while(i++ < 10){if(i == 5)break;console.log(i + 1);}');
-
-			function print(val){
-				var li = document.createElement('li');
-				li.innerHTML = val;
-				document.getElementById('output').appendChild(li);
-			}
-			
-			function $await(elem, eventType, handler){
-				var once = function(evt){
-					handler.call(this, evt);
-					this.removeEventListener(eventType, once, false);						
-				};
-				elem.addEventListener(eventType, once, false);
-			}
-
-			function Fib(){
-				var a = 0, current = 1, count = 0;
-				this.next = function(){
-					if(count++ == 0) return 0;
-					else if(count++ == 1) return 1;
-					var b = a;
-					a = current;
-					return current = a + b;
-				};
-			}
-			
-			function printWhenClick(){
-				Mr.asynIterator(new Fib(), function(val, idx){
-					var _ = this;
-					$await(document.body, 'click', function(evt){
-						print(val);
-						_.next();
-					});
-				});
-			}
+			var code = UglifyJS.parse('for(var i = 0 ; i < 10 ; i++){if(i == 5) continue;console.log(i + 1);}');
 
 			window.onload = function(){
-				// printWhenClick();
-				function while1(){
-					var i = 0;
-					Mr.asynIterator(Mr.infinite(), function(){
-						if(i++ < 10){
-							if(i == 5) return Mr.CONTINUE;
-							console.log(i + 1);
-							this.next();
-						}else{
-							return Mr.BREAK;
-						}
-					});
 
-					i = 0;while(i++ < 10){if(i == 5)continue;console.log(i + 1);}
-				}
-
-				function for1(){
-					for(var i = 0 ; i < 10 ; i++){
-						if(i == 5) continue;
-						console.log(i + 1);
-					}
+				var __recodeLoop = function(condition, block, innerBefore, outerBefore, after){
+					if(condition == null || block == null) 
+						throw 'condition or block is null';
 					
-					var i = 0;
-					Mr.asynIterator(Mr.infinite(), function(){
-						if(i < 10){
-							if(i == 5)
-							{
-								i++;
-								return Mr.CONTINUE;
-							}
+					if(outerBefore != null){
+						this.visit(outerBefore);
+					}
 
-							console.log(i + 1);
-							i++;
-							this.next();
-						}else{
-							return Mr.BREAK;
-						}
-					});
-				}
-				
-				function doWhile(){
-					var i = 0;
-					do{
-						if(i == 5) continue;
-						console.log(i + 1);
-					}while(i++ < 10);
+					this.codes.push('Mr.asynIterator(Mr.infinite(), function(cnt){');
 
-					i = 0;
-					Mr.asynIterator(Mr.infinite(), function(){
-						if(i == 5){
-							i++;
-							return Mr.CONTINUE;
+					if(after != null){
+						this.codes.push('if(cnt != 1){');
+						this.visit(after);
+						this.codes.push(';');
+						this.codes.push('}');
+					}
+
+					if(innerBefore != null){
+						this.codes.push('if(cnt == 1){');
+						this.visit(innerBefore);
+						this.codes.push('}');
+					}
+
+					this.codes.push('if(');
+					var conditional = this.visit(condition);
+					this.codes.push('){');
+					var block = this.visit(block);
+					
+					this.codes.push('this.next();');
+					this.codes.push('}else{');
+					this.codes.push('return Mr.BREAK;');
+					this.codes.push('}');
+					this.codes.push('});');
+				};
+
+				window.EV = Mr.EV.extend({
+					visitForLoop : function(expression, base){
+						__recodeLoop.call(this, expression[2], expression[4], null, expression[1], expression[3]);
+						return expression;
+					},
+					visitDoWhileLoop : function(expression, base){
+						__recodeLoop.call(this, expression[1], expression[2], expression[2]);
+						return expression;
+					},
+					visitWhileLoop : function(expression, base){
+						__recodeLoop.call(this, expression[1], expression[2]);
+						return expression;
+					},
+					visitStatement : function(expression, base){
+						var key = expression[0];
+						switch(key){
+							case 'break':
+								this.codes.push('return Mr.BREAK;');
+								return expression;
+							case 'continue':
+								this.codes.push('return Mr.CONTINUE;');
+								return expression;
 						}
-						console.log(i + 1);
-						if(i++ < 10){
-							this.next();
-						}else{
-							return Mr.BREAK;
-						}
-					});
-				}
-				doWhile();
+						return base(expression);
+					}
+				});
 			};
 		</script>
 	</head>
@@ -114,3 +81,58 @@
 	</body>
 </html>
 
+<!--
+function while1(){
+	var i = 0;
+	Mr.asynIterator(Mr.infinite(), function(){
+		if(i++ < 10){
+			if(i == 5) return Mr.CONTINUE;
+			console.log(i + 1);
+			this.next();
+		}else{
+			return Mr.BREAK;
+		}
+	});
+
+	i = 0;while(i++ < 10){if(i == 5)continue;console.log(i + 1);}
+}
+while1();
+
+function for1(){
+	for(var i = 0 ; i < 10 ; i++){if(i == 5) continue;console.log(i + 1);}
+	
+	var i = 0;
+	Mr.asynIterator(Mr.infinite(), function(){
+		if(i < 10){
+			if(i == 5)
+			{
+				i++;
+				return Mr.CONTINUE;
+			}
+
+			console.log(i + 1);
+			i++;
+			this.next();
+		}else{
+			return Mr.BREAK;
+		}
+	});
+}
+
+function doWhile(){
+	var i = 0;do{if(i == 5) continue;console.log(i + 1);}while(i++ < 10);
+
+	i = 0;
+	Mr.asynIterator(Mr.infinite(), function(){
+		if(i == 5){
+			i++;
+			return Mr.CONTINUE;
+		}
+		console.log(i + 1);
+		if(i++ < 10){
+			this.next();
+		}else{
+			return Mr.BREAK;
+		}
+	});
+}-->
