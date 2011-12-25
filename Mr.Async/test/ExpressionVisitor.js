@@ -12,6 +12,7 @@
 	ExpressionVisitor.prototype = {
 		visit : function(expression){
 			if(expression == null) return null;
+			this.codes = [];
 			var K = expression[0];
 			switch(K){
 				case 'toplevel' :
