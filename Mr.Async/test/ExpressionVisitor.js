@@ -421,6 +421,10 @@
 		getCode : function(){
 			return this.codes.join('');
 		},
+		reset : function(){
+			this.codes = [];
+			return this;	
+		},
 		onLineEnd : function(){
 			this._append(';');
 		}
@@ -463,11 +467,15 @@
 			ExpressionVisitor.apply(this, arguments);
 		};
 		__extend(EV_Child, ExpressionVisitor);
-		for(var key in ext){
-			if(ext.hasOwnProperty(key)){
-				__bind(EV_Child, ext, key);
+
+		if(ext != null){
+			for(var key in ext){
+				if(ext.hasOwnProperty(key)){
+					__bind(EV_Child, ext, key);
+				}
 			}
 		}
+
 		return new EV_Child();
 	};
 })();
