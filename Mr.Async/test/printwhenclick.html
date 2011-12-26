@@ -5,10 +5,14 @@
 		<script type="text/javascript" src="parser.js"></script>
 		<script type="text/javascript" src="ExpressionVisitor.js"></script>
 		<script type="text/javascript">
-			function d(){
+			function d(callback){
 				var i = 0, de = Mr.Deferred();
 				setTimeout(function(){
-					de.resolve(++i);
+					var result = ++i;
+					if(typeof callback == 'function'){
+						callback(result);
+					}
+					de.resolve(result);
 				}, 2000);
 				return de;
 			}
@@ -17,65 +21,71 @@
 
 			window.onload = function(){
 
-				var __recodeLoop = function(condition, block, innerBefore, outerBefore, after){
-					if(condition == null || block == null) 
-						throw 'condition or block is null';
-					
-					if(outerBefore != null){
-						this.visit(outerBefore);
-					}
-
-					this.codes.push('Mr.asynIterator(Mr.infinite(), function(cnt){');
-
-					if(after != null){
-						this.codes.push('if(cnt != 1){');
-						this.visit(after);
-						this.codes.push(';');
-						this.codes.push('}');
-					}
-
-					if(innerBefore != null){
-						this.codes.push('if(cnt == 1){');
-						this.visit(innerBefore);
-						this.codes.push('}');
-					}
-
-					this.codes.push('if(');
-					var conditional = this.visit(condition);
-					this.codes.push('){');
-					var block = this.visit(block);
-					
-					this.codes.push('this.next();');
-					this.codes.push('}else{');
-					this.codes.push('return Mr.BREAK;');
-					this.codes.push('}');
-					this.codes.push('});');
-				};
-
 				window.EV = Mr.EV.extend({
 					visitForLoop : function(expression, base){
-						__recodeLoop.call(this, expression[2], expression[4], null, expression[1], expression[3]);
+						this._recodeLoop(expression[2], expression[4], null, expression[1], expression[3]);
 						return expression;
 					},
 					visitDoWhileLoop : function(expression, base){
-						__recodeLoop.call(this, expression[1], expression[2], expression[2]);
+						this._recodeLoop(expression[1], expression[2], expression[2]);
 						return expression;
 					},
 					visitWhileLoop : function(expression, base){
-						__recodeLoop.call(this, expression[1], expression[2]);
+						this._recodeLoop(expression[1], expression[2]);
 						return expression;
 					},
 					visitStatement : function(expression, base){
 						var key = expression[0];
 						switch(key){
 							case 'break':
-								this.codes.push('return Mr.BREAK;');
+								this._append('return Mr.BREAK;');
 								return expression;
 							case 'continue':
-								this.codes.push('return Mr.CONTINUE;');
+								this._append('return Mr.CONTINUE;');
 								return expression;
 						}
 						return base(expression);
+					},
+					visitMethodCall : function(expression, base){
+						var methodName = expression[1][1];
+						if(methodName == '$await'){
+							console.log(111);
+						}
+						return base(expression);
+					},
+					_recodeLoop : function(condition, block, innerBefore, outerBefore, after){
+						if(condition == null || block == null) 
+							throw 'condition or block is null';
+						
+						if(outerBefore != null){
+							this.visit(outerBefore);
+						}
+
+						this._append('Mr.asynIterator(Mr.infinite(), function(cnt){');
+
+						if(after != null){
+							this._append('if(cnt != 1){');
+							this.visit(after);
+							this._append(';');
+							this._append('}');
+						}
+
+						if(innerBefore != null){
+							this._append('if(cnt == 1){');
+							this.visit(innerBefore);
+							this._append('}');
+						}
+
+						this._append('if(');
+						var conditional = this.visit(condition);
+						this._append('){');
+						var block = this.visit(block);
+						
+						this._append('this.next();');
+						this._append('}else{');
+						this._append('return Mr.BREAK;');
+						this._append('}');
+						this._append('});');
 					}
 				});
 

@@ -160,7 +160,6 @@
 			if(anonymous) this._append('(');
 
 			this.visit(expression[1]);
-			this._append(expression[3]);
 
 			if(anonymous) this._append(')');
 			// arguments
