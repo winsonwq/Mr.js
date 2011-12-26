@@ -442,14 +442,20 @@
 	}
 
 	var __bind = function(child, ext, key){
-		child.prototype[key] = function(){
-			var args = [].slice.call(arguments);
-			var _ = this;
-			args.push(function(){
-				child.super[key].apply(_, arguments);
-			});
-			ext[key].apply(this, args);
-		};
+		// if super have this method, inherit;
+		if(child.super[key] != null){
+			child.prototype[key] = function(){
+				var args = [].slice.call(arguments);
+				var _ = this;
+				args.push(function(){
+					child.super[key].apply(_, arguments);
+				});
+				ext[key].apply(this, args);
+			};
+		}else{
+			// if not, just extend it;
+			child.prototype[key] = ext[key];
+		}
 	}
 
 	root.extend = function(ext){
