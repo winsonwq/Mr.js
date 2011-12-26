@@ -5,7 +5,7 @@
 		<script type="text/javascript" src="parser.js"></script>
 		<script type="text/javascript" src="ExpressionVisitor.js"></script>
 		<script type="text/javascript">
-			var code = UglifyJS.parse('switch(a){ case 1:a++;b++;var c = a + b;break;case 2:break;default:break;}');
+			var code = UglifyJS.parse('try{a++;var b = --a;}catch(ex){ a++;b--;var d = a+b;throw new Object(a,b,c);}');
 
 			window.onload = function(){
 

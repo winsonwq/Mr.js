@@ -93,6 +93,12 @@
 				case 'switch':
 					this.visitSwitch(expression);
 				    break;
+				case 'try':
+					this.visitTry(expression);
+					break;
+				case 'throw':
+					this.visitThrow(expression);
+					break;
 				default :
 					throw K + ' error';
 					break;
@@ -100,11 +106,11 @@
 			return expression;
 		},
 		visitBinary : function(expression){
-			this.codes.push('(');
+			this._append('(');
 			var left = this.visit(expression[2]);
-			this.codes.push(expression[1]);
+			this._append(expression[1]);
 			var right = this.visit(expression[3]);
-			this.codes.push(')');
+			this._append(')');
 			return expression;
 		},
 		visitUnary : function(expression){
@@ -120,22 +126,22 @@
 				}
 			}
 
-			this.codes.push(prefix ? (expression[1] + instead) : '');
+			this._append(prefix ? (expression[1] + instead) : '');
 			this.visit(expression[2]);
-			this.codes.push(!prefix ? (expression[1] + instead) : '');
+			this._append(!prefix ? (expression[1] + instead) : '');
 			return expression;
 		},
 		visitConstant : function(expression){
 			switch(expression[0]){
 				case 'num':
 				case 'atom':
-					this.codes.push(expression[1]);
+					this._append(expression[1]);
 					break;
 				case 'string':
-					this.codes.push("\"" + expression[1] + "\"");
+					this._append("\"" + expression[1] + "\"");
 					break;
 				case 'regexp':
-					this.codes.push("/" + expression[1] + '/');
+					this._append("/" + expression[1] + '/');
 					break;
 			}
 			return expression;
@@ -144,100 +150,101 @@
 			var exp = expression[1];
 			this.visit(exp);
 
-			this.codes.push('.');
-			this.codes.push(expression[2]);
+			this._append('.');
+			this._append(expression[2]);
 			return expression;
 		},
 		visitMethodCall : function(expression){
 			var anonymous = expression[1][0] == 'function';
 
-			if(anonymous) this.codes.push('(');
+			if(anonymous) this._append('(');
 
 			this.visit(expression[1]);
-			this.codes.push(expression[3]);
+			this._append(expression[3]);
 
-			if(anonymous) this.codes.push(')');
+			if(anonymous) this._append(')');
 			// arguments
-			this.codes.push('(');
+			this._append('(');
 			for(var i = 0, len = expression[2].length ; i < len ; i++ ){
 				this.visit(expression[2][i]);
-				if(i != len - 1) this.codes.push(',');
+				if(i != len - 1) this._append(',');
 			}
-			this.codes.push(')');
+			this._append(')');
 			return expression;
 		},
 		visitAssignment : function(expression){
 			this.visit(expression[2]);
-			this.codes.push('=');
+			this._append('=');
 			this.visit(expression[3]);
 			return expression;
 		},
 		visitNew : function(expression){
+			this._append('new ');
 			this.visitMethodCall(expression);
 			return expression;
 		},
 		visitSub : function(expression){
 			this.visit(expression[1]);
-			this.codes.push('[');
+			this._append('[');
 			this.visit(expression[2]);
-			this.codes.push(']');
+			this._append(']');
 			return expression;
 		},
 		visitVariable : function(expression){
-			this.codes.push('var ');
+			this._append('var ');
 			for(var i = 0, len = expression[1].length ; i < len ; i++ ){
 				this.visitVariableAssignment(expression[1][i]);
 				if(i != len - 1){
-					this.codes.push(',');
+					this._append(',');
 				}
 			}
 			this.onLineEnd();
 			return expression;
 		},
 		visitVariableAssignment : function(expression){
-			this.codes.push(expression[0]);
+			this._append(expression[0]);
 			if(expression[1] != null){
-				this.codes.push('=');
+				this._append('=');
 			}
 			this.visit(expression[1]); // value
 			return expression;
 		},
 		visitFunction : function(expression){
-			this.codes.push('function');
+			this._append('function');
 			if(expression[1] != null){
-				this.codes.push(' ' + expression[1]);
+				this._append(' ' + expression[1]);
 			}
-			this.codes.push('(');
+			this._append('(');
 			for(var i = 0, len = expression[2].length; i < len ; i++ ){
 				this.visitParameter(expression[2][i]);
 				if(i != len - 1){
-					this.codes.push(',');
+					this._append(',');
 				}
 			}
-			this.codes.push(')');
-			this.codes.push('{');
+			this._append(')');
+			this._append('{');
 			for(var ii = 0, len = expression[3].length; ii < len ; ii++ ){
 				this.visit(expression[3][ii]);
 			}
-			this.codes.push('}');
+			this._append('}');
 			return expression;
 		},
 		visitParameter : function(expression){
-			this.codes.push(expression);
+			this._append(expression);
 			return expression;
 		},
 		visitName : function(expression){
-			this.codes.push(expression[1]);
+			this._append(expression[1]);
 			return expression;
 		},
 		visitStatement : function(expression){
 			switch(expression[0]){
 				case 'continue' :
 				case 'break' :
-					this.codes.push(expression[0]);
+					this._append(expression[0]);
 					break;
 				case 'return':
-					this.codes.push(expression[0] + ' ');
+					this._append(expression[0] + ' ');
 					break;
 			}
 			this.visit(expression[1]);
@@ -245,53 +252,53 @@
 			return expression;
 		},
 		visitForLoop : function(expression){
-			this.codes.push('for(');
+			this._append('for(');
 			var before = this.visit(expression[1]);
 			var conditional = this.visitConditional(expression[2]);
-			this.codes.push(';');
+			this._append(';');
 			var afterStatement = this.visit(expression[3]);
-			this.codes.push('){');
+			this._append('){');
 			var block = this.visit(expression[4]);
-			this.codes.push('}');
+			this._append('}');
 			return expression;
 		},
 		visitForInLoop : function(expression){
-			this.codes.push('for(');
+			this._append('for(');
 			if(expression[1][0] == 'var'){
 				this._visitVarInForInLoop(expression[1]);
 			}else this.visit(expression[1]);
 			// var name = this.visit(expression[2]);
-			this.codes.push(' in ');
+			this._append(' in ');
 			var target = this.visit(expression[3]);
-			this.codes.push('){');
+			this._append('){');
 			var block = this.visit(expression[4]);
-			this.codes.push('}');
+			this._append('}');
 			return expression;
 		},
 		_visitVarInForInLoop : function(expression){
-			this.codes.push('var ');
+			this._append('var ');
 			for(var i = 0, len = expression[1].length ; i < len ; i++ ){
 				this.visitVariableAssignment(expression[1][i]);
 				if(i != len - 1){
-					this.codes.push(',');
+					this._append(',');
 				}
 			}
 			return expression;
 		},
 		visitDoWhileLoop : function(expression){
-			this.codes.push('do{');
+			this._append('do{');
 			var block = this.visit(expression[2]);
-			this.codes.push('}while(');
+			this._append('}while(');
 			var conditional = this.visitConditional(expression[1]);
-			this.codes.push(');');
+			this._append(');');
 			return expression;
 		},
 		visitWhileLoop : function(expression){
-			this.codes.push('while(');
+			this._append('while(');
 			var conditional = this.visitConditional(expression[1]);
-			this.codes.push('){');
+			this._append('){');
 			var block = this.visit(expression[2]);
-			this.codes.push('}');
+			this._append('}');
 			return expression;
 		},
 		visitBlock : function(expression){
@@ -301,15 +308,15 @@
 			return expression;
 		},
 		visitIf : function(expression){
-			this.codes.push('if(');
+			this._append('if(');
 			var conditional = this.visitConditional(expression[1]);
-			this.codes.push('){');
+			this._append('){');
 			var block = this.visit(expression[2]);
-			this.codes.push('}');
+			this._append('}');
 			if(expression[3] != null){
-				this.codes.push('else{');
+				this._append('else{');
 				this.visit(expression[3]);
-				this.codes.push('}');
+				this._append('}');
 			}
 			return expression;
 		},
@@ -319,59 +326,59 @@
 		},
 		visitTernary : function(expression){
 			var conditional = this.visit(expression[1]);
-			this.codes.push('?');
+			this._append('?');
 			var yes = this.visit(expression[2]);
-			this.codes.push(':');
+			this._append(':');
 			var no = this.visit(expression[3]);
 			return expression;
 		},
 		visitArray : function(expression){
-			this.codes.push('[');
+			this._append('[');
 			for(var i = 0, len = expression[1].length ; i < len ; i++ ){
 				this.visit(expression[1][i]);
 				if(i != len - 1)
-					this.codes.push(',');
+					this._append(',');
 			}
-			this.codes.push(']');
+			this._append(']');
 			return expression;
 		},
 		visitObject : function(expression){
-			this.codes.push('{');
+			this._append('{');
 			for(var i = 0, len = expression[1].length ; i < len ; i++ ){
 				this.visitKeyValue(expression[1][i]);
 				if(i != len - 1){
-					this.codes.push(',');
+					this._append(',');
 				}
 			}
-			this.codes.push('}');
+			this._append('}');
 			return expression;
 		},
 		visitKeyValue : function(expression){
-			this.codes.push(expression[0]);
-			this.codes.push(':');
+			this._append(expression[0]);
+			this._append(':');
 			this.visit(expression[1]);
 			return expression;
 		},
 		visitSwitch : function(expression){
-			this.codes.push('switch(');
+			this._append('switch(');
 			this.visit(expression[1]);
-			this.codes.push('){');
+			this._append('){');
 			
 			for(var i = 0, len = expression[2].length; i < len ; i++){
 				this.visitCase(expression[2][i]);
 			}
 
-			this.codes.push('}');
+			this._append('}');
 
 			return expression;
 		},
 		visitCase : function(expression){
 			if(expression[0] != null){
-				this.codes.push('case ');
+				this._append('case ');
 				this.visit(expression[0]);
-				this.codes.push(':');
+				this._append(':');
 			}else{
-				this.codes.push('default:');
+				this._append('default:');
 			}
 
 			for(var i = 0, len = expression[1].length; i < len ; i++){
@@ -380,11 +387,42 @@
 
 			return expression;
 		},
+		visitTry : function(expression){
+			this._append('try{');
+			for(var i = 0, len = expression[1].length; i < len; i++)
+				this.visit(expression[1][i]);
+
+			this._append('}');
+
+			this.visitCatch(expression[2]);
+
+			return expression;
+		},
+		visitCatch : function(expression){
+			this._append('catch(');
+			this._append(expression[0]);
+			this._append('){');
+
+			for(var i = 0, len = expression[1].length; i < len; i++)
+				this.visit(expression[1][i]);
+
+			this._append('}');
+			return expression;
+		},
+		visitThrow : function(expression){
+			this._append('throw ');
+			this.visit(expression[1]);
+			this.onLineEnd();
+			return expression;
+		},
+		_append : function(str){
+			this.codes.push(str);
+		},
 		getCode : function(){
 			return this.codes.join('');
 		},
 		onLineEnd : function(){
-			this.codes.push(';');
+			this._append(';');
 		}
 	};
 
