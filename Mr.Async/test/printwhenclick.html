@@ -5,7 +5,7 @@
 		<script type="text/javascript" src="parser.js"></script>
 		<script type="text/javascript" src="ExpressionVisitor.js"></script>
 		<script type="text/javascript">
-			var code = UglifyJS.parse('for(var i = 0 ; i < 10 ; i++){if(i == 5) continue;console.log(i + 1);}');
+			var code = UglifyJS.parse('switch(a){ case 1:a++;b++;var c = a + b;break;case 2:break;default:break;}');
 
 			window.onload = function(){
 
@@ -70,6 +70,8 @@
 						return base(expression);
 					}
 				});
+
+				window.EV_OLD = Mr.EV.extend();
 			};
 		</script>
 	</head>
@@ -79,59 +81,3 @@
 		</ul>
 	</body>
 </html>
-
-<!--
-function while1(){
-	var i = 0;
-	Mr.asynIterator(Mr.infinite(), function(){
-		if(i++ < 10){
-			if(i == 5) return Mr.CONTINUE;
-			console.log(i + 1);
-			this.next();
-		}else{
-			return Mr.BREAK;
-		}
-	});
-
-	i = 0;while(i++ < 10){if(i == 5)continue;console.log(i + 1);}
-}
-while1();
-
-function for1(){
-	for(var i = 0 ; i < 10 ; i++){if(i == 5) continue;console.log(i + 1);}
-	
-	var i = 0;
-	Mr.asynIterator(Mr.infinite(), function(){
-		if(i < 10){
-			if(i == 5)
-			{
-				i++;
-				return Mr.CONTINUE;
-			}
-
-			console.log(i + 1);
-			i++;
-			this.next();
-		}else{
-			return Mr.BREAK;
-		}
-	});
-}
-
-function doWhile(){
-	var i = 0;do{if(i == 5) continue;console.log(i + 1);}while(i++ < 10);
-
-	i = 0;
-	Mr.asynIterator(Mr.infinite(), function(){
-		if(i == 5){
-			i++;
-			return Mr.CONTINUE;
-		}
-		console.log(i + 1);
-		if(i++ < 10){
-			this.next();
-		}else{
-			return Mr.BREAK;
-		}
-	});
-}-->

@@ -12,7 +12,6 @@
 	ExpressionVisitor.prototype = {
 		visit : function(expression){
 			if(expression == null) return null;
-			this.codes = [];
 			var K = expression[0];
 			switch(K){
 				case 'toplevel' :
@@ -91,6 +90,9 @@
 				case 'array':
 					this.visitArray(expression);
 					break;
+				case 'switch':
+					this.visitSwitch(expression);
+				    break;
 				default :
 					throw K + ' error';
 					break;
@@ -348,6 +350,34 @@
 			this.codes.push(expression[0]);
 			this.codes.push(':');
 			this.visit(expression[1]);
+			return expression;
+		},
+		visitSwitch : function(expression){
+			this.codes.push('switch(');
+			this.visit(expression[1]);
+			this.codes.push('){');
+			
+			for(var i = 0, len = expression[2].length; i < len ; i++){
+				this.visitCase(expression[2][i]);
+			}
+
+			this.codes.push('}');
+
+			return expression;
+		},
+		visitCase : function(expression){
+			if(expression[0] != null){
+				this.codes.push('case ');
+				this.visit(expression[0]);
+				this.codes.push(':');
+			}else{
+				this.codes.push('default:');
+			}
+
+			for(var i = 0, len = expression[1].length; i < len ; i++){
+				this.visit(expression[1][i]);
+			}
+
 			return expression;
 		},
 		getCode : function(){
