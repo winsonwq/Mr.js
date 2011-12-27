@@ -18,6 +18,7 @@
 					for(var i = 0, len = expression[1].length ; i < len ; i++){
 						this.visit(expression[1][i]);
 					}
+					this.onVisitEnd();
 					break;
 				case 'num':
 				case 'string':
@@ -426,6 +427,9 @@
 		},
 		onLineEnd : function(){
 			this._append(';');
+		},
+		onVisitEnd : function(){
+			
 		}
 	};
 

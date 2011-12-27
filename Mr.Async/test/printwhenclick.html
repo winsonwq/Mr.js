@@ -6,9 +6,9 @@
 		<script type="text/javascript" src="ExpressionVisitor.js"></script>
 		<script type="text/javascript">
 			function d(callback){
-				var i = 0, de = Mr.Deferred();
+				var de = Mr.Deferred();
 				setTimeout(function(){
-					var result = ++i;
+					var result = Math.random();
 					if(typeof callback == 'function'){
 						callback(result);
 					}
@@ -16,8 +16,7 @@
 				}, 2000);
 				return de;
 			}
-
-			var code = UglifyJS.parse('var num=$await(d);console.log(num);');
+			var code = UglifyJS.parse('var c = 1, a = $await(d()), e = 2;console.log(a);var b = $await(d());console.log(b);');
 
 			window.onload = function(){
 
@@ -43,16 +42,83 @@
 							case 'continue':
 								this._append('return Mr.CONTINUE;');
 								return expression;
+							case 'stat':
+								if(expression[1][0] == 'call' && expression[1][1][1] == '$await'){
+									this._visitAwait(expression[1]);
+									return expression;
+								}
+								break;
 						}
 						return base(expression);
 					},
-					visitMethodCall : function(expression, base){
-						var methodName = expression[1][1];
-						if(methodName == '$await'){
-							console.log(111);
+					visitVariable : function(expression, base){
+						
+						var normal = [];
+						var awaits = [];
+
+						for(var i = 0, len = expression[1].length ; i < len ; i++){
+							var item = expression[1][i];
+							if(item[1][0] == 'call' && item[1][1][1] == '$await'){
+								awaits.push(item);
+							}else{
+								normal.push(item);
+							}
 						}
-						return base(expression);
+
+						if(normal.length > 0){
+							this._append('var ');
+							for(var i = 0, len = normal.length ; i < len ; i++){
+								this.visitVariableAssignment(normal[i]);
+								if(i != len - 1){
+									this._append(',');
+								}
+							}
+							this.onLineEnd();
+						}
+
+
+						for(var i = 0, len = awaits.length ; i < len ; i++){
+							this._visitAwait(awaits[i]);
+						}
+
+						return expression;
 					},
+					onVisitEnd : function(){
+						for(var i = this._lastAppend.length ; i >= 0 ; i--){
+							this._append(this._lastAppend[i]);
+						}
+					},
+					// only two type will be converted.
+					// 1. var
+					// 2. just method call
+					_visitAwait : function(expression){
+						var justMethodCall = expression[0] == 'call';
+						var variableName = justMethodCall ? null : expression[0];
+						var parameters = justMethodCall ? expression[2] : expression[1][2];
+						
+						if(parameters.length == 0){
+							throw 'no parameter in $await method.';
+						}
+
+						this._append('Mr.when(');
+						for(var i = 0, len = parameters.length; i < len ; i++){
+							if(0){
+								throw 'Must be a Mr.Deferred object';
+							}
+							this.visit(parameters[i]);
+						}
+						this._append(').done(function(');
+						if(parameters.length > 1){
+							this._append('var ' + variableName + '=[].slice.call(arguments);');
+						}else{
+							this._append(variableName);
+						}
+						this._append('){');
+						this._lastAppend.push('});');
+
+						return expression;
+					},
+					_lastAppend : [],
 					_recodeLoop : function(condition, block, innerBefore, outerBefore, after){
 						if(condition == null || block == null) 
 							throw 'condition or block is null';
