@@ -16,7 +16,7 @@
 				}, 2000);
 				return de;
 			}
-			var code = UglifyJS.parse('var c = 1, a = $await(d()), e = 2;console.log(a);var b = $await(d());console.log(b);');
+			var code = UglifyJS.parse('var arr = $await(d(), d());console.log(arr[0]);console.log(arr[1]);');
 
 			window.onload = function(){
 
@@ -106,14 +106,18 @@
 								throw 'Must be a Mr.Deferred object';
 							}
 							this.visit(parameters[i]);
+							if(i != len - 1){
+								this._append(',');
+							}
 						}
 						this._append(').done(function(');
-						if(parameters.length > 1){
-							this._append('var ' + variableName + '=[].slice.call(arguments);');
-						}else{
+						if(parameters.length == 1){
 							this._append(variableName);
 						}
 						this._append('){');
+						if(parameters.length > 1){
+							this._append('var ' + variableName + '=[].slice.call(arguments);');
+						}
 						this._lastAppend.push('});');
 
 						return expression;
