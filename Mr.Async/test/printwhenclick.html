@@ -16,14 +16,15 @@
 				}, 1000);
 				return de;
 			}
-			var code = UglifyJS.parse('var i = 0;while(i++ < 10){ var d = $await(d());console.log(d);}');
+			var source = 'for(var i = $await(d()); i < 5 ; i++){ var a = $await(d());console.log(a);}console.log("finished.");var b = $await(d());console.log(b);$await(d());console.log(222);';
+			var code = UglifyJS.parse(source);
 
 			window.onload = function(){
 				window.EV = Mr.EV.extend({
 					visitForLoop : function(expression, base){
 						var cnt = this._needToRecode(expression);
 						if(cnt){
-							this._recodeLoop(expression[2], expression[4], expression[1], expression[3]);
+							this._recodeLoop(expression[2], expression[4], expression[1], expression[3], expression[5]);
 							return expression;
 						}
 						return base(expression);
@@ -97,7 +98,7 @@
 						return expression;
 					},
 					visitMultipleLine : function(expression, base){
-						for(var i = 0, len = expression.length ; i < len ; i++){
+						for(var i = 0 ; i < expression.length ; i++){
 							var item = expression[i];
 							if(this._dispatchAwait(item, expression, i)){
 								break;
@@ -115,16 +116,28 @@
 									this.visitVariable(item, expression.slice(i + 1));
 									return true;
 								case 'stat':
-									if(item[1][0] == 'assign'){
+									var name = item[1][0];
+									if(name == 'assign' || name == 'call'){
 										this._visitAwait(item[1], expression.slice(i + 1));
 										return true;
 									}
 									break;
 								case 'for':
+									var executeExpression;
 									var before = item[1];
-									if(this._needToRecode(before)){
+
+									if(this._needToRecode(before)){										
 										item[1] = null;
-										this.visitMultipleLine([before].concat([item]));
+										executeExpression = [before].concat([item]);
+									}
+
+									if(this._needToRecode(item)){
+										item[item.length] = ['block', expression.slice(i + 1)];
+										expression.splice(i + 1);
+									}
+									
+									if(executeExpression){
+										this.visitMultipleLine(executeExpression);
 										return true;
 									}
 									break;
@@ -134,6 +147,8 @@
 									console.log(before[1].concat([item]));
 									this.visitMultipleLine(before[1].concat([item]));
 									return true;
+								case 'while':									
+									break;
 							}	
 						}
 						return false;
@@ -181,7 +196,7 @@
 									this._append('[].slice.call(arguments);');
 								}	
 							}							
-						}
+						}else this._append('){');
 
 						if(blockExpression){
 							this.visitMultipleLine(blockExpression);
@@ -202,7 +217,7 @@
 						}
 						return cnt;
 					},
-					_recodeLoop : function(condition, block, outerBefore, after){
+					_recodeLoop : function(condition, block, outerBefore, after, afterIteration){
 						if(condition == null || block == null) 
 							throw 'condition or block is null';
 
@@ -230,11 +245,14 @@
 						this._append('}else{');
 						this._append('return Mr.BREAK;');
 						this._append('}');
-						this._append('}, function(){');
-
-						this._append('console.log("finished.");');
-
-						this._append('});');
+						this._append('}');
+						if(afterIteration != null){
+							this._append(', function(){');
+							this.visit(afterIteration);
+							this._append('});');
+						}else{
+							this._append(');');		
+						}
 					}
 				});
 			};
