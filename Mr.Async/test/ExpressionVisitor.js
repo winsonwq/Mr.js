@@ -1,10 +1,12 @@
 (function(){
 	
-	var root = typeof exports !== 'undefined' ? exports : {};
+	var root;
 
-	if(root == {}){
+	if(typeof exports !== 'undefined'){
+		root = exports;
+	}else{
 		if(this.Mr == null) this.Mr = {};
-		this.Mr.EV = root;
+		this.Mr.EV = root = {};
 	}
 
 	function ExpressionVisitor(){
