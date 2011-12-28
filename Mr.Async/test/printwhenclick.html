@@ -16,7 +16,7 @@
 				}, 1000);
 				return de;
 			}
-			var source = 'for(var i = $await(d()); i < 5 ; i++){ var a = $await(d());console.log(a);}console.log("finished.");var b = $await(d());console.log(b);$await(d());console.log(222);';
+			var source = 'var i = 0;do{ var a = $await(d()); console.log(a);}while(i++ < 5);console.log("finished.");var b = $await(d());console.log(b);';
 			var code = UglifyJS.parse(source);
 
 			window.onload = function(){
@@ -144,7 +144,8 @@
 								case 'do':
 									var before = item[2];
 									item = this._doWhileToFor(item);
-									console.log(before[1].concat([item]));
+									item[item.length] = ['block', expression.slice(i + 1)];
+									expression.splice(i + 1);
 									this.visitMultipleLine(before[1].concat([item]));
 									return true;
 								case 'while':									
