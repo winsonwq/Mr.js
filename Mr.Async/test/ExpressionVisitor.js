@@ -15,10 +15,7 @@
 			var K = expression[0];
 			switch(K){
 				case 'toplevel' :
-					for(var i = 0, len = expression[1].length ; i < len ; i++){
-						this.visit(expression[1][i]);
-					}
-					this.onVisitEnd();
+					this.visitTopLevel(expression[1]);
 					break;
 				case 'num':
 				case 'string':
@@ -104,6 +101,11 @@
 					throw K + ' error';
 					break;
 			}
+			return expression;
+		},
+		visitTopLevel : function(expression){
+			this.visitMultipleLine(expression);
+			this.onVisitEnd();
 			return expression;
 		},
 		visitBinary : function(expression){
@@ -254,6 +256,9 @@
 		visitForLoop : function(expression){
 			this._append('for(');
 			var before = this.visit(expression[1]);
+			if(before == null){
+				this._append(';');
+			}
 			var conditional = this.visitConditional(expression[2]);
 			this._append(';');
 			var afterStatement = this.visit(expression[3]);
@@ -302,8 +307,12 @@
 			return expression;
 		},
 		visitBlock : function(expression){
-			for(var i = 0, len = expression[1].length; i < len ; i++){
-				this.visit(expression[1][i]);
+			this.visitMultipleLine(expression[1]);
+			return expression;
+		},
+		visitMultipleLine : function(expression){
+			for(var i = 0, len = expression.length; i < len ; i++){
+				this.visit(expression[i]);
 			}
 			return expression;
 		},
@@ -389,9 +398,7 @@
 		},
 		visitTry : function(expression){
 			this._append('try{');
-			for(var i = 0, len = expression[1].length; i < len; i++)
-				this.visit(expression[1][i]);
-
+			this.visitMultipleLine(expression[1]);
 			this._append('}');
 
 			this.visitCatch(expression[2]);
@@ -403,8 +410,7 @@
 			this._append(expression[0]);
 			this._append('){');
 
-			for(var i = 0, len = expression[1].length; i < len; i++)
-				this.visit(expression[1][i]);
+			this.visitMultipleLine(expression[1]);
 
 			this._append('}');
 			return expression;
