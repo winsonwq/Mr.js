@@ -69,6 +69,8 @@
 				if (ret == Mr.CONTINUE) {
 					this.next(catchException);
 				} else if (ret == Mr.BREAK) {
+					if (this._exceptionHandler != null)
+                    	ret = this._exceptionHandler();
 					return;
 				}
 			}
