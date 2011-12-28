@@ -2,8 +2,10 @@
 	
 	var root = typeof exports !== 'undefined' ? exports : {};
 
-	if(this.Mr == null) this.Mr = {};
-	this.Mr.EV = root;
+	if(root == {}){
+		if(this.Mr == null) this.Mr = {};
+		this.Mr.EV = root;
+	}
 
 	function ExpressionVisitor(){
 		this.codes = [];
