@@ -401,6 +401,10 @@ test('exception of Mr.asynIterator', function(){
 	});
 });
 
+test('if iterator break, statement after iteration will be run', function(){
+	
+});
+
 test('Mr.Deferred', function(){
 	ok(Mr.Deferred(), 'ok');
 });

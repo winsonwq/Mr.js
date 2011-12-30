@@ -13,11 +13,16 @@
 						callback(result);
 					}
 					de.resolve(result);
-				}, 1000);
+				}, 2000);
 				return de;
 			}
-			var source = 'var i = 0;do{ var a = $await(d()); console.log(a);}while(i++ < 5);console.log("finished.");var b = $await(d());console.log(b);';
-			var code = UglifyJS.parse(source);
+
+			var source = 'var i = 0;while(i++ < 5){var random = Math.random() * 10;console.log("random number " + i + ": " + random);if(random > 5){console.log("waiting if.");$await(d());console.log("finish waiting if.");}else{console.log("waiting else");var aa = $await(d());console.log(aa);console.log("finish else");}console.log("waiting 2.");$await(d());console.log("finish waiting 2.");}';
+
+			var source2 = 'var i = 0;if(0){var i = 1;console.log(i);}else{var i = $await(d());console.log(i);}console.log(i);';
+			var source3 = 'var a = 0, b = $await(d()), c = 1, d = $await(d());console.log(b + d);';
+
+			var code = UglifyJS.parse(source3);
 
 			window.onload = function(){
 				window.EV = Mr.EV.extend({
@@ -40,7 +45,7 @@
 					visitWhileLoop : function(expression, base){
 						var cnt = this._needToRecode(expression);
 						if(cnt){
-							this._recodeLoop(expression[1], expression[2]);
+							this._recodeLoop(expression[1], expression[2], null, null, expression[3]);
 							return expression;
 						}
 						return base(expression);
@@ -57,7 +62,7 @@
 						}
 						return base(expression);
 					},
-					visitVariable : function(expression, blocks, base){
+					visitVariable : function(expression, base){
 						
 						var normal = [];
 						var awaits = [];
@@ -81,7 +86,12 @@
 							}
 							this.onLineEnd();
 						}
-
+						
+						var blocks, lastOne = expression[expression.length - 1];
+						if(lastOne != null && lastOne[0] == 'block'){
+							blocks = lastOne[1];
+						}
+						
 						if(awaits.length > 1){
 							var tempBlock = [];
 							for(var i = 1, len = awaits.length ; i < len; i++){
@@ -104,21 +114,23 @@
 								break;
 							}else{
 								this.visit(item);
-							}
+							} 
 						}
 						return expression;
 					},
 					_dispatchAwait : function(item, expression, i){
 						var K = item[0];
 						if(this._needToRecode(item)){
+							var afterStatSameLevel = expression.slice(i + 1);
 							switch(K){
 								case 'var':
-									this.visitVariable(item, expression.slice(i + 1));
+									item[item.length] = ['block', afterStatSameLevel];
+									this.visitVariable(item);
 									return true;
 								case 'stat':
 									var name = item[1][0];
 									if(name == 'assign' || name == 'call'){
-										this._visitAwait(item[1], expression.slice(i + 1));
+										this._visitAwait(item[1], afterStatSameLevel);
 										return true;
 									}
 									break;
@@ -126,13 +138,13 @@
 									var executeExpression;
 									var before = item[1];
 
-									if(this._needToRecode(before)){										
+									if(this._needToRecode(before)){
 										item[1] = null;
-										executeExpression = [before].concat([item]);
+										executeExpression = [before].concat([item]).concat(afterStatSameLevel);
 									}
 
 									if(this._needToRecode(item)){
-										item[item.length] = ['block', expression.slice(i + 1)];
+										item[item.length] = ['block', afterStatSameLevel];
 										expression.splice(i + 1);
 									}
 									
@@ -144,12 +156,37 @@
 								case 'do':
 									var before = item[2];
 									item = this._doWhileToFor(item);
-									item[item.length] = ['block', expression.slice(i + 1)];
+									item[item.length] = ['block', afterStatSameLevel];
 									expression.splice(i + 1);
 									this.visitMultipleLine(before[1].concat([item]));
 									return true;
-								case 'while':									
-									break;
+								case 'while':
+									item[item.length] = ['block', afterStatSameLevel];
+									expression.splice(i + 1);
+									this.visitWhileLoop(item);
+									return true;
+								case 'if':
+									if(item[item.length - 1] == '$$true') break;
+									var elseBlock = item[3] == null ? ['block', []] : item[3];
+									item[3] = elseBlock;
+
+									var funcName = 'ifElse$$' + new Date().getTime();
+
+									var newFunction = ['defun', funcName, [], afterStatSameLevel];
+									var callFunc = ['stat', ['call', ['name', funcName], []]];
+
+									// add method call in if and else block;
+									item[2][1].push(callFunc);
+									item[3][1].push(callFunc);
+
+									expression.splice(i + 1);
+									expression.push(newFunction);
+									
+									// if-else is ok
+									item[item.length] = '$$true';
+
+									this.visitMultipleLine([item].concat([newFunction]));
+									return true;
 							}	
 						}
 						return false;
@@ -252,7 +289,7 @@
 							this.visit(afterIteration);
 							this._append('});');
 						}else{
-							this._append(');');		
+							this._append(');');	
 						}
 					}
 				});

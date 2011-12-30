@@ -229,9 +229,7 @@
 			}
 			this._append(')');
 			this._append('{');
-			for(var ii = 0, len = expression[3].length; ii < len ; ii++ ){
-				this.visit(expression[3][ii]);
-			}
+			this.visitMultipleLine(expression[3]);
 			this._append('}');
 			return expression;
 		},
