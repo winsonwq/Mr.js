@@ -21,8 +21,9 @@
 
 			var source2 = 'var i = 0;if(0){var i = 1;console.log(i);}else{var i = $await(d());console.log(i);}console.log(i);';
 			var source3 = 'var a = 0, b = $await(d()), c = 1, d = $await(d());console.log(b + d);';
+			var source4 = 'var i = 0;if(i == 0){ var i = $await(d());console.log(i);}';
 
-			var code = UglifyJS.parse(source3);
+			var code = UglifyJS.parse(source);
 
 			window.onload = function(){
 				window.EV = Mr.EV.extend({
